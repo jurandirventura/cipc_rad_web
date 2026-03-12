@@ -75,8 +75,7 @@ async function loadColormap(product){
 //------------------
 function createLegend(cmap){
 
-  const colors = cmap.colors.join(",")
-
+  const colors = cmap.colors.join(", ")
   const legend = document.getElementById("legend")
 
   legend.innerHTML = `
@@ -181,6 +180,7 @@ return chroma.scale(cmap.colors)(ratio).hex()
 })
 
 layer.addTo(map)
+layers.push(layer)   // guardar camada
 
 createLayerControl(produto+" "+data,layer)
 
@@ -210,6 +210,8 @@ let btn=div.querySelector("button")
 btn.onclick=function(){
 
 map.removeLayer(layer)
+
+layers = layers.filter(l => l !== layer)
 
 div.remove()
 

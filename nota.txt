@@ -1,0 +1,8 @@
+Start do Frontend
+
+cd cipc_rad_web
+python3 app.py
+
+Acesso: 
+http://localhost:5000/
+
