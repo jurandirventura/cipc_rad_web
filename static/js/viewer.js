@@ -12,6 +12,20 @@ L.tileLayer(
 
 var layers=[]
 
+// Timeline
+var timelineDates=[]
+var timelineLayer=null
+
+var timelineInterval = null
+
+// Cache Global
+var geotiffCache={}
+
+// Para área de gráfico
+var pixelChart=null
+var clickLat=null
+var clickLon=null
+
 // -----------------
 async function init(){
 
@@ -140,7 +154,157 @@ return r.values[0][row][col]
 
 }
 
+
+// ----------------- Função stop
+function stopTimeline(){
+
+if(timelineInterval){
+clearInterval(timelineInterval)
+timelineInterval=null
+}
+
+}
+
+// Função Gráfico
+
+function drawChart(values){
+
+const ctx=document.getElementById("chart")
+
+new Chart(ctx,{
+type:"line",
+data:{
+labels:timelineDates,
+datasets:[{
+label:"Valor",
+data:values
+}]
+}
+})
+
+}
+
+
+// ----------------- Download
+function downloadCSV(){
+
+let csv="data,valor\n"
+
+for(let i=0;i<timelineDates.length;i++){
+
+csv+=timelineDates[i]+","+timelineValues[i]+"\n"
+
+}
+
+let blob=new Blob([csv],{type:"text/csv"})
+
+let url=URL.createObjectURL(blob)
+
+let a=document.createElement("a")
+
+a.href=url
+a.download="serie_temporal.csv"
+
+a.click()
+
+}
+
+//------------------ Animação automática do timeline
+
+async function playTimeline(){
+
+let speed=document.getElementById("speedSlider").value
+
+let slider=document.getElementById("timeSlider")
+
+timelineInterval=setInterval(async function(){
+
+let i=parseInt(slider.value)
+
+if(i>=timelineDates.length-1){
+clearInterval(timelineInterval)
+return
+}
+
+slider.value=i+1
+
+await updateTimeline()
+
+},speed)
+
+}
+
+// ----------------- Cria gráfico
+function createPixelChart(values){
+
+let ctx=document.getElementById("pixelChart").getContext("2d")
+
+if(pixelChart){
+pixelChart.destroy()
+}
+
+pixelChart=new Chart(ctx,{
+
+type:"line",
+
+data:{
+
+labels:timelineDates,
+
+datasets:[{
+
+label:"Pixel value",
+
+data:values,
+
+borderWidth:2,
+
+fill:false
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+
+plugins:{
+legend:{display:true}
+},
+
+scales:{
+x:{display:true},
+y:{display:true}
+}
+
+}
+
+})
+
+}
+
+//------------------ Recolhe botão Timeline
+function toggleTimeline(){
+
+let panel=document.getElementById("timelinePanel")
+
+if(panel.style.display==="none"){
+
+panel.style.display="block"
+
+}else{
+
+panel.style.display="none"
+
+}
+
+map.invalidateSize()
+
+}
+
 //------------------
+
 
 async function loadProduct(product){
 
@@ -175,6 +339,134 @@ select.add(o)
 })
 
 }
+
+// -----------------
+
+async function loadTimeline(){
+
+let produto=document.getElementById("produto").value
+
+let start=document.getElementById("startDate").value
+let end=document.getElementById("endDate").value
+
+if(!start || !end){
+   alert("Selecione data inicial e final")
+   return
+}
+
+start=start.replaceAll("-","")
+end=end.replaceAll("-","")
+
+let datas=await (await fetch(
+"/api/datas_interval/"+produto+"/"+start+"/"+end
+)).json()
+
+if(datas.length===0){
+   alert("Nenhuma data encontrada")
+   return
+}
+
+timelineDates=datas
+
+let slider=document.getElementById("timeSlider")
+
+slider.max=datas.length-1
+slider.value=0
+
+updateTimeline()
+
+}
+
+// ----------------- Move timeline
+
+async function updateTimeline(){
+
+if(timelineDates.length === 0){
+   console.log("Timeline vazia")
+   return
+}
+
+let produto=document.getElementById("produto").value
+let index=parseInt(document.getElementById("timeSlider").value)
+
+let data=timelineDates[index]
+
+if(!data){
+   console.log("Data inválida:",index)
+   return
+}
+
+let d = data.substring(0,4)+"-"+data.substring(4,6)+"-"+data.substring(6,8)
+
+document.getElementById("timeLabel").innerHTML=d
+
+if(timelineLayer){
+   map.removeLayer(timelineLayer)
+}
+
+timelineLayer=await loadGeoTiff(produto,data)
+
+}
+
+// ----------------- Carrega GeoTIFF no Timeline
+
+async function loadGeoTiff(produto,data){
+
+let key=produto+"_"+data
+
+if(geotiffCache[key]){
+
+console.log("Cache hit:",key)
+
+geotiffCache[key].addTo(map)
+
+return geotiffCache[key]
+
+}
+
+let ano=data.substring(0,4)
+
+let url="/geotiff/"+produto+"/"+ano+"/"+data
+
+let response=await fetch(url)
+
+let arrayBuffer=await response.arrayBuffer()
+
+let georaster=await parseGeoraster(arrayBuffer)
+
+let cmap=await loadColormap(produto)
+
+let layer=new GeoRasterLayer({
+
+georaster:georaster,
+opacity:0.7,
+resolution:128,
+wrapX:false,
+
+pixelValuesToColorFn:function(pixelValues){
+
+let v=pixelValues[0]
+
+if(v===-9999 || v===undefined) return null
+
+let ratio=(v-cmap.vmin)/(cmap.vmax-cmap.vmin)
+
+ratio=Math.max(0,Math.min(1,ratio))
+
+return chroma.scale(cmap.colors)(ratio).hex()
+
+}
+
+})
+
+layer.addTo(map)
+
+geotiffCache[key]=layer
+
+return layer
+
+}
+
 
 // -----------------
 async function addLayer(){
@@ -245,6 +537,36 @@ map.invalidateSize()
 
 }
 
+// ----------------- Cálculo da série temporal
+
+async function buildPixelSeries(){
+
+let produto=document.getElementById("produto").value
+
+let values=[]
+
+for(let data of timelineDates){
+
+let ano=data.substring(0,4)
+
+let url="/geotiff/"+produto+"/"+ano+"/"+data
+
+let response=await fetch(url)
+
+let arrayBuffer=await response.arrayBuffer()
+
+let georaster=await parseGeoraster(arrayBuffer)
+
+let value = geoblaze.identify(georaster,[clickLon,clickLat])
+
+values.push(value ? value[0] : null)
+
+}
+
+createPixelChart(values)
+
+}
+
 // -----------------
 function createLayerControl(nome,layer,legend){
 
@@ -298,7 +620,6 @@ let v=getPixelValue(layer,lat,lng)
 
 if(v!==null && v!==-9999){
 
-// txt+=`${layer.nome}: ${v}<br>`
 txt+=`${layer.nome}: ${v} ${layer.cmap?.unit || ""}<br>`
 
 }
@@ -309,5 +630,25 @@ document.getElementById("pixelValues").innerHTML=txt
 
 })
 
+map.on("click",async function(e){
+
+let lat=e.latlng.lat
+let lon=e.latlng.lng
+
+let values=[]
+
+for(let layer of layers){
+
+let val=layer.getValueAtLatLng(lat,lon)
+
+values.push(val)
+
+}
+
+drawChart(values)
+
+})
+
+document.getElementById("timeSlider").oninput=updateTimeline
 
 init()

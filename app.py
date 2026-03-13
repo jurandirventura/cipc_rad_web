@@ -90,6 +90,31 @@ def get_colormap(product):
 
 # ---------------------------------------------------
 
+@app.route("/api/datas_interval/<produto>/<start>/<end>")
+def datas_interval(produto,start,end):
+
+    pasta = os.path.join(DATA_DIR, produto)
+
+    datas=set()
+
+    for root,dirs,files in os.walk(pasta):
+
+        for f in files:
+
+            m=re.search(r"\d{8}",f)
+
+            if m:
+
+                d=m.group()
+
+                if start <= d <= end:
+                    datas.add(d)
+
+    datas=sorted(list(datas))
+
+    return jsonify(datas)
+# ---------------------------------------------------
+
 
 if __name__ == "__main__":
     app.run(debug=True)

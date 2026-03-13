@@ -22,3 +22,34 @@ padding:5px;
 border:1px solid #ccc;
 background:white;
 }
+
+#timelinePanel{
+
+position:absolute;
+right:0;
+top:0;
+
+width:260px;
+height:100%;
+
+background:white;
+
+padding:15px;
+
+box-shadow:-3px 0 8px rgba(0,0,0,0.2);
+
+z-index:1000;
+
+overflow:auto;
+
+}
+
+#map{
+
+position:absolute;
+left:300px;
+right:260px;
+top:0;
+bottom:0;
+
+}
