@@ -116,6 +116,32 @@ return div
 
 //------------------
 
+function getPixelValue(layer,lat,lng){
+
+let r = layer.georaster
+
+let xmin = r.xmin
+let ymax = r.ymax
+let resx = r.pixelWidth
+let resy = r.pixelHeight
+
+let col = Math.floor((lng - xmin)/resx)
+let row = Math.floor((ymax - lat)/resy)
+
+if(
+row < 0 || col < 0 ||
+row >= r.height ||
+col >= r.width
+){
+return null
+}
+
+return r.values[0][row][col]
+
+}
+
+//------------------
+
 async function loadProduct(product){
 
    const cmap = await loadColormap(product)
@@ -199,7 +225,11 @@ return chroma.scale(cmap.colors)(ratio).hex()
 
 layer.nome = nome
 
+layer.georaster = georaster
+
 layer.addTo(map)
+
+layer.cmap = cmap
 
 layer.redraw()
 
@@ -254,5 +284,30 @@ document.getElementById("layersPanel").appendChild(div)
 
 document.getElementById("produto").onchange=loadAnos
 document.getElementById("ano").onchange=loadDatas
+
+map.on("mousemove",function(e){
+
+let lat=e.latlng.lat
+let lng=e.latlng.lng
+
+let txt=`Lat: ${lat.toFixed(3)} Lon: ${lng.toFixed(3)}<br>`
+
+layers.forEach(layer=>{
+
+let v=getPixelValue(layer,lat,lng)
+
+if(v!==null && v!==-9999){
+
+// txt+=`${layer.nome}: ${v}<br>`
+txt+=`${layer.nome}: ${v} ${layer.cmap?.unit || ""}<br>`
+
+}
+
+})
+
+document.getElementById("pixelValues").innerHTML=txt
+
+})
+
 
 init()
