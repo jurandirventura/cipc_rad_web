@@ -73,27 +73,45 @@ async function loadColormap(product){
 }
 
 //------------------
-function createLegend(cmap){
+function createLegend(cmap,nome){
 
-  const colors = cmap.colors.join(", ")
-  const legend = document.getElementById("legend")
+let div = document.createElement("div")
 
-  legend.innerHTML = `
-     <div style="
-        width:260px;
-        height:15px;
-        background: linear-gradient(to right, ${colors});
-        border:1px solid black;
-     "></div>
+div.className="legendItem"
 
-     <div style="
-        display:flex;
-        justify-content:space-between;
-        font-size:12px">
-        <span>${cmap.vmin}</span>
-        <span>${cmap.vmax}</span>
-     </div>
-  `
+const colors = cmap.colors.join(", ")
+
+div.innerHTML = `
+
+<b>${nome}</b>
+
+<div style="
+width:260px;
+height:15px;
+background: linear-gradient(to right, ${colors});
+border:1px solid black;
+"></div>
+
+<div style="
+display:flex;
+justify-content:space-between;
+font-size:12px">
+<span>${cmap.vmin}</span>
+<span>${cmap.vmax}</span>
+</div>
+
+<div style="
+font-size:11px;
+text-align:right;
+color:#333">
+${cmap.unit || ""}
+</div>
+
+`
+
+document.getElementById("legendPanel").appendChild(div)
+
+return div
 }
 
 //------------------
@@ -136,14 +154,17 @@ select.add(o)
 async function addLayer(){
 
 let produto=document.getElementById("produto").value
-
-const cmap = await loadColormap(produto)
-
-createLegend(cmap)
-
-
 let ano=document.getElementById("ano").value
 let data=document.getElementById("data").value
+
+let nome = produto+" "+data
+
+if(layers.find(l => l.nome === nome)){
+   alert("Camada já carregada")
+   return
+}
+
+const cmap = await loadColormap(produto)
 
 let url="/geotiff/"+produto+"/"+ano+"/"+data
 
@@ -156,11 +177,8 @@ let georaster=await parseGeoraster(arrayBuffer)
 let layer=new GeoRasterLayer({
 
 georaster:georaster,
-
 opacity:0.7,
-
-resolution:128,
-
+resolution:64,
 wrapX:false,
 
 pixelValuesToColorFn:function(pixelValues){
@@ -179,15 +197,26 @@ return chroma.scale(cmap.colors)(ratio).hex()
 
 })
 
-layer.addTo(map)
-layers.push(layer)   // guardar camada
+layer.nome = nome
 
-createLayerControl(produto+" "+data,layer)
+layer.addTo(map)
+
+layer.redraw()
+
+layers.push(layer)
+
+let legend = createLegend(cmap,nome)
+
+createLayerControl(nome,layer,legend)
+
+map.invalidateSize()
+
+// map.fitBounds(layer.getBounds(), {animate:false})
 
 }
 
 // -----------------
-function createLayerControl(nome,layer){
+function createLayerControl(nome,layer,legend){
 
 let div=document.createElement("div")
 
@@ -214,6 +243,8 @@ map.removeLayer(layer)
 layers = layers.filter(l => l !== layer)
 
 div.remove()
+
+legend.remove()
 
 }
 
