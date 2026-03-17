@@ -118,26 +118,7 @@ step="1">
 
 </div>
 
-<!-- Área de gráfico-->
 <!-- <div id="chartPanel" style="
-position:absolute;
-bottom:10px;
-left:10px;
-width:420px;
-height:220px;
-background:white;
-border:1px solid gray;
-padding:5px;
-z-index:1000;
-">
-
-<b>Pixel time series</b>
-
-<canvas id="pixelChart"></canvas>
-
-</div> -->
-
-<div id="chartPanel" style="
 position:absolute; 
 bottom:10px; 
 left:10px; 
@@ -157,7 +138,20 @@ box-shadow:0 0 8px rgba(0,0,0,0.4);">
 <button onclick="closeChart()">Fechar</button>
 </div>
 
+</div> -->
+
+<div id="chartPanel">
+  <div id="chartHeader">📊 Série Temporal (arrastar)</div>
+
+  <canvas id="pixelChart"></canvas>
+
+  <button onclick="downloadChartPNG()">PNG</button>
+  <button onclick="downloadChartJPG()">JPG</button>
+  <button onclick="downloadCSV()">CSV</button>
+  <button onclick="closeChart()">Fechar</button>
 </div>
+
+
 
 
 
