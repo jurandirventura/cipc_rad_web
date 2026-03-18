@@ -56,22 +56,6 @@ z-index:1000;">
 Pixel values
 </div>
 
-<!-- #----------
-<div id="pixelValues"
-style="
-position:absolute;
-bottom:10px;
-left:10px;
-background:white;
-padding:5px;
-font-size:12px;
-border:1px solid black;
-z-index:1000;
-">
-</div>
-
-#------------ -->
-
 <h3>Legendas</h3>
 
 <div id="legendPanel"></div>
@@ -107,22 +91,12 @@ Velocidade<br>
 
 <br><br>
 
-<!-- <input type="range"
-id="timeSlider"
-min="0"
-max="0"
-step="1"
-value="0"
-style="width:100%"> -->
-
 <input type="range"
 id="timeSlider"
 min="0"
 max="0"
 value="0"
 step="1">
-
-
 
 <br>
 
@@ -134,28 +108,6 @@ step="1">
 
 </div>
 
-<!-- <div id="chartPanel" style="
-position:absolute; 
-bottom:10px; 
-left:10px; 
-width:420px; 
-height:260px; 
-background:white; 
-padding:10px; 
-border-radius:6px; 
-display:none; 
-z-index:999; 
-box-shadow:0 0 8px rgba(0,0,0,0.4);">
-
-<canvas id="pixelChart"></canvas>
-
-<div style="margin-top:6px">
-<button onclick="downloadCSV()">CSV</button>
-<button onclick="closeChart()">Fechar</button>
-</div>
-
-</div> -->
-
 <div id="chartPanel" style="display:none;">
   <div id="chartHeader">📊 Série Temporal (arrastar)</div>
 
@@ -166,9 +118,6 @@ box-shadow:0 0 8px rgba(0,0,0,0.4);">
   <button onclick="downloadCSV()">CSV</button>
   <button onclick="closeChart()">Fechar</button>
 </div>
-
-
-
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>

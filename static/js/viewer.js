@@ -26,6 +26,9 @@ var pixelChart=null
 var clickLat=null
 var clickLon=null
 
+// Colormap cache
+var colormapCache = {}
+
 // ---------------------
 async function init(){
 
@@ -83,23 +86,39 @@ select.add(o)
 }
 
 // ---------------------
+// async function loadColormap(product){
+// const response = await fetch(`/api/colormap/${product}`)
+// return await response.json()
+// }
+
 async function loadColormap(product){
-const response = await fetch(`/api/colormap/${product}`)
-return await response.json()
+
+if(colormapCache[product]){
+return colormapCache[product]
 }
 
-// ---------------------
-function createLegend(cmap,nome){
+const response = await fetch(`/api/colormap/${product}`)
+let cmap = await response.json()
 
-let div=document.createElement("div")
-div.className="legendItem"
+colormapCache[product] = cmap
 
-const colors=cmap.colors.join(", ")
+return cmap
+}
 
-div.innerHTML=`
+function createLegend(cmap, nome, layer){
+
+let div = document.createElement("div")
+div.className = "legendItem"
+
+const colors = cmap.colors.join(", ")
+
+div.innerHTML = `
+<div style="display:flex;justify-content:space-between;align-items:center;">
 <b>${nome}</b>
+<button style="cursor:pointer;">❌</button>
+</div>
 
-<div style="width:260px;height:15px;
+<div style="width:100%;height:15px;
 background:linear-gradient(to right, ${colors});
 border:1px solid black;"></div>
 
@@ -113,9 +132,26 @@ ${cmap.unit || ""}
 </div>
 `
 
+// botão remover
+div.querySelector("button").onclick = function(){
+
+// remove do mapa
+map.removeLayer(layer)
+
+// remove do array
+layers = layers.filter(l => l !== layer)
+
+// remove legenda
+div.remove()
+
+}
+
 document.getElementById("legendPanel").appendChild(div)
+
 return div
 }
+
+
 
 // ---------------------
 async function getGeoTiff(produto,data){
@@ -163,7 +199,8 @@ layer.addTo(map)
 
 layers.push(layer)
 
-createLegend(cmap,nome)
+// createLegend(cmap,nome)
+createLegend(cmap, nome, layer)
 }
 // ---------------------
 
@@ -252,17 +289,21 @@ timelineLayer = null
 let georaster = await getGeoTiff(produto,data)
 let cmap = await loadColormap(produto)
 
-// cria nova layer
+// cria layer
 timelineLayer = createRasterLayer(georaster,cmap)
-
-// 🔥 GARANTE acesso ao raster (IMPORTANTE pro hover)
 timelineLayer.georaster = georaster
 
-// adiciona no mapa
 timelineLayer.addTo(map)
 
-// 🔥 força render
+// 🔥 FORÇA render REAL
+await new Promise(resolve => {
+requestAnimationFrame(() => {
 timelineLayer.redraw()
+
+// pequeno delay garante pintura na tela
+setTimeout(resolve, 100)
+})
+})
 
 await preloadNext(produto,index)
 
@@ -271,46 +312,15 @@ await preloadNext(produto,index)
 
 // ---------------------
 
-// let timelineInterval = null
-
-// function playTimeline(){
-
-// stopTimeline()
-
-// let speed = document.getElementById("speedSlider")?.value || 500
-
-// let slider = document.getElementById("timeSlider")
-
-// timelineInterval = setInterval(async function(){
-
-// let i = parseInt(slider.value)
-
-// if(i >= timelineDates.length - 1){
-// stopTimeline()
-// return
-// }
-
-// slider.value = i + 1
-
-// await updateTimeline()
-
-// }, speed)
-
-// }
-
-// function stopTimeline(){
-
-// if(timelineInterval){
-// clearInterval(timelineInterval)
-// timelineInterval = null
-// }
-// }
-
 async function playTimeline(){
 
 stopTimeline()
 
-let speed = parseInt(document.getElementById("speedSlider")?.value) || 800
+// let speed = parseInt(document.getElementById("speedSlider")?.value) || 500
+
+let speed = Math.max(800, parseInt(document.getElementById("speedSlider")?.value) || 800)
+
+//let speed = Math.max(900, parseInt(...) || 900)
 
 let slider = document.getElementById("timeSlider")
 
@@ -340,6 +350,12 @@ await new Promise(r => setTimeout(r, speed))
 
 
 // ---------------------
+
+function stopTimeline(){
+timelineInterval = false
+}
+
+//
 
 function createPixelChart(values, cmap, produto){
 
