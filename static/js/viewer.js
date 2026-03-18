@@ -29,6 +29,11 @@ var clickLon=null
 // Colormap cache
 var colormapCache = {}
 
+// Ponto clicado no mapa
+var clickLat=null
+var clickLon=null
+var clickMarker = null
+
 // ---------------------
 async function init(){
 
@@ -105,6 +110,54 @@ colormapCache[product] = cmap
 return cmap
 }
 
+// function createLegend(cmap, nome, layer){
+
+// let div = document.createElement("div")
+// div.className = "legendItem"
+
+// const colors = cmap.colors.join(", ")
+
+// div.innerHTML = `
+// <div style="display:flex;justify-content:space-between;align-items:center;">
+// <b>${nome}</b>
+// <button style="cursor:pointer;">❌</button>
+// </div>
+
+// <div style="width:100%;height:15px;
+// background:linear-gradient(to right, ${colors});
+// border:1px solid black;"></div>
+
+// <div style="display:flex;justify-content:space-between;font-size:12px">
+// <span>${cmap.vmin}</span>
+// <span>${cmap.vmax}</span>
+// </div>
+
+// <div style="font-size:11px;text-align:right;">
+// ${cmap.unit || ""}
+// </div>
+// `
+
+// // botão remover
+// div.querySelector("button").onclick = function(){
+
+// // remove do mapa
+// map.removeLayer(layer)
+
+// // remove do array
+// layers = layers.filter(l => l !== layer)
+
+// // remove legenda
+// div.remove()
+
+// }
+
+// document.getElementById("legendPanel").appendChild(div)
+
+// return div
+// }
+
+
+
 function createLegend(cmap, nome, layer){
 
 let div = document.createElement("div")
@@ -115,34 +168,56 @@ const colors = cmap.colors.join(", ")
 div.innerHTML = `
 <div style="display:flex;justify-content:space-between;align-items:center;">
 <b>${nome}</b>
-<button style="cursor:pointer;">❌</button>
+<button class="removeBtn">❌</button>
 </div>
 
-<div style="width:100%;height:15px;
+<div style="width:100%;height:12px;
 background:linear-gradient(to right, ${colors});
 border:1px solid black;"></div>
 
-<div style="display:flex;justify-content:space-between;font-size:12px">
+<div style="display:flex;justify-content:space-between;font-size:10px">
 <span>${cmap.vmin}</span>
 <span>${cmap.vmax}</span>
 </div>
 
-<div style="font-size:11px;text-align:right;">
+<div style="font-size:10px;text-align:right;">
 ${cmap.unit || ""}
+</div>
+
+<div style="margin-top:5px;">
+Opacidade:
+<input type="range" min="0" max="1" step="0.05" value="1" class="opacitySlider">
 </div>
 `
 
-// botão remover
-div.querySelector("button").onclick = function(){
+// --------------------
+// REMOVER CAMADA
+// --------------------
+div.querySelector(".removeBtn").onclick = function(){
 
-// remove do mapa
-map.removeLayer(layer)
+    map.removeLayer(layer)
+    layers = layers.filter(l => l !== layer)
+    div.remove()
+}
 
-// remove do array
-layers = layers.filter(l => l !== layer)
+// --------------------
+// OPACIDADE
+// --------------------
+div.querySelector(".opacitySlider").oninput = function(e){
 
-// remove legenda
-div.remove()
+    let value = parseFloat(e.target.value)
+
+    // mostra valor ao passar o mouse
+    e.target.title = value
+
+    // aplica opacidade
+    if(layer.setOpacity){
+        layer.setOpacity(value)
+    }
+
+    if(layer.setStyle){
+        layer.setStyle({opacity:value, fillOpacity:value})
+    }
 
 }
 
@@ -387,10 +462,35 @@ options:{
 responsive:true,
 maintainAspectRatio:false,
 
+// plugins:{
+// title:{
+// display:true,
+// // text:title
+// text: `${title} | Lat: ${clickLat.toFixed(3)} Lon: ${clickLon.toFixed(3)}`
+// },
+// tooltip:{
+// enabled:true,
+// mode:'nearest',
+// intersect:false,  
+// callbacks:{
+// label:function(context){
+// return context.parsed.y+" "+unit
+// },
+// afterBody:function(){
+// return description
+// }
+// }
+// }
+// },
+
 plugins:{
 title:{
 display:true,
 text:title
+},
+subtitle:{
+display:true,
+text:`Lat: ${clickLat.toFixed(3)} | Lon: ${clickLon.toFixed(3)}`
 },
 tooltip:{
 enabled:true,
@@ -406,6 +506,8 @@ return description
 }
 }
 },
+
+
 
 scales:{
 y:{
@@ -538,7 +640,10 @@ return
 
 let values = pixelChart.data.datasets[0].data
 
-let csv="data,valor\n"
+// let csv="data,valor\n"
+
+let csv=`Lat: ${clickLat}, Lon: ${clickLon}\n`
+csv+="data,valor\n"
 
 for(let i=0;i<timelineDates.length;i++){
 csv+=timelineDates[i]+","+values[i]+"\n"
@@ -562,14 +667,38 @@ document.getElementById("chartPanel").style.display="none"
 
 
 // ---------------------
-map.on("click",async function(e){
+// map.on("click",async function(e){
 
-clickLat=e.latlng.lat
-clickLon=e.latlng.lng
+// clickLat=e.latlng.lat
+// clickLon=e.latlng.lng
 
+// await buildPixelSeries()
+
+// })
+
+map.on("click", async function(e){
+
+clickLat = e.latlng.lat
+clickLon = e.latlng.lng
+
+// remove marcador anterior
+if(clickMarker){
+    map.removeLayer(clickMarker)
+}
+
+// cria novo marcador
+clickMarker = L.marker([clickLat, clickLon]).addTo(map)
+
+// popup opcional
+clickMarker.bindPopup(
+    `Lat: ${clickLat.toFixed(4)}<br>Lon: ${clickLon.toFixed(4)}`
+).openPopup()
+
+// gera gráfico
 await buildPixelSeries()
 
 })
+
 
 let lastTime = 0
 
