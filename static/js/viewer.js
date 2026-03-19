@@ -288,17 +288,60 @@ opacity:0.7,
 resolution:128,
 wrapX:false,
 
+
+// pixelValuesToColorFn:function(pixelValues){
+
+// let v=pixelValues[0]
+
+// if(v===-9999 || v===undefined) return null
+
+// let ratio=(v-cmap.vmin)/(cmap.vmax-cmap.vmin)
+// ratio=Math.max(0,Math.min(1,ratio))
+
+// return chroma.scale(cmap.colors)(ratio).hex()
+// }
+
+
+// FUNCIONOU APENAS PARA AREA QUEIMADA.
+// pixelValuesToColorFn:function(pixelValues){
+
+// let v = pixelValues[0]
+
+// // sem dado ou sem queimada → transparente
+// if(v === 0 || v === undefined) return null
+
+// // qualquer valor > 0 = área queimada
+// return "#000000"
+// }
+
+
 pixelValuesToColorFn:function(pixelValues){
 
-let v=pixelValues[0]
+let v = pixelValues[0]
 
-if(v===-9999 || v===undefined) return null
+// -------------------------
+// BINÁRIO
+// -------------------------
+if(cmap.type === "binary"){
 
-let ratio=(v-cmap.vmin)/(cmap.vmax-cmap.vmin)
-ratio=Math.max(0,Math.min(1,ratio))
+    if(v === 0 || v === undefined) return null
+
+    return "#000000"
+}
+
+// -------------------------
+// CONTÍNUO
+// -------------------------
+if(v === cmap.nodata || v === undefined) return null
+
+let ratio = (v - cmap.vmin) / (cmap.vmax - cmap.vmin)
+ratio = Math.max(0, Math.min(1, ratio))
 
 return chroma.scale(cmap.colors)(ratio).hex()
+
 }
+
+
 
 })
 }
