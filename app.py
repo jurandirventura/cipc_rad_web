@@ -84,7 +84,11 @@ def geotiff(produto, ano, data):
 def get_colormap(product):
 
     with open("/home/jurandir/cipc_rad/config/colormaps.json") as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except Exception as e:
+            return {"error": str(e)}, 500
+        #data = json.load(f)
 
     return jsonify(data[product])
 
