@@ -7,6 +7,9 @@ app = Flask(__name__)
 
 DATA_DIR = "/home/jurandir/cipc_output/geotiff"
 
+# Retirar o comentário para DOCKER
+### DATA_DIR = "/data/geotiff"
+
 
 # ---------------------------------------------------
 @app.route("/")
