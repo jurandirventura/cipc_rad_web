@@ -5,10 +5,10 @@ import json
 
 app = Flask(__name__)
 
-DATA_DIR = "/home/jurandir/cipc_output/geotiff"
+#DATA_DIR = "/home/jurandir/cipc_output/geotiff"
 
 # Retirar o comentário para DOCKER
-### DATA_DIR = "/data/geotiff"
+DATA_DIR = "/data/geotiff"
 
 
 # ---------------------------------------------------
@@ -86,7 +86,8 @@ def geotiff(produto, ano, data):
 @app.route("/api/colormap/<product>")
 def get_colormap(product):
 
-    with open("/home/jurandir/cipc_rad/config/colormaps.json") as f:
+    #with open("/home/jurandir/cipc_rad/config/colormaps.json") as f:
+    with open("/config/colormaps.json") as f:
         try:
             data = json.load(f)
         except Exception as e:
@@ -124,5 +125,6 @@ def datas_interval(produto,start,end):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    #app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 

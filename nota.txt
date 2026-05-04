@@ -1,7 +1,23 @@
 Start do Frontend
 
+# Alterado de:
 cd cipc_rad_web
 python3 app.py
+
+para Via docker: 
+- Inicialização do Sistema 
+  cd /home/jurandir/cipc_rad_web
+  docker compose up -d --build
+
+- Para desligar/desativar
+   docker compose down
+
+
+- Verificação:
+(base) jurandir@DESKTOP071300:~/cipc_rad_web$ docker ps 
+CONTAINER ID   IMAGE                    COMMAND                  CREATED         STATUS         PORTS                                           NAMES
+c43ecf999486   cipc_rad_web-web         "python app.py"          4 hours ago     Up 4 hours     0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp     cipc_web
+
 
 Acesso: 
 http://localhost:5000/

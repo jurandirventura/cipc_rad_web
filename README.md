@@ -34,3 +34,10 @@ Docker + CI/CD
 
 - DADOS CONSUMIDOS PELO FRONTEND
   ~/cipc_output
+
+- Inicialização do Sistema 
+  cd /home/jurandir/cipc_rad_web
+  docker compose up -d --build
+
+- Para desligar/desativar
+   docker compose down
