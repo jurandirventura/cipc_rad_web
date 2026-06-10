@@ -29,6 +29,57 @@ Ano<br>
 Data<br>
 <select id="data"></select><br><br>
 
+
+<h4>CETESB</h4>
+
+</label>
+
+<label>
+<input type="checkbox" value="O3" class="cetesbGas">
+O3
+</label>
+
+<label>
+<input type="checkbox" value="MP25" class="cetesbGas">
+MP2.5
+</label>
+
+<label>
+<input type="checkbox" value="MP10" class="cetesbGas">
+MP10
+</label>
+
+<label>
+<input type="checkbox" value="NO2" class="cetesbGas">
+NO2
+</label>
+
+<label>
+<input type="checkbox" value="SO2" class="cetesbGas">
+SO2
+</label>
+
+<label>
+<input type="checkbox" value="CO" class="cetesbGas">
+CO
+</label>
+
+
+<h4>Sentinel-5P</h4>
+
+<label><input type="checkbox" value="O3" class="satGas">O3</label>
+<label><input type="checkbox" value="AI" class="satGas">AI</label>
+<label><input type="checkbox" value="NO2" class="satGas">NO2</label>
+<label><input type="checkbox" value="SO2" class="satGas">SO2</label>
+<label><input type="checkbox" value="CO" class="satGas">CO</label>
+<label><input type="checkbox" value="CH4" class="satGas">CH4</label>
+
+<button onclick="compareSeries()">
+Comparar
+</button>
+
+
+
 <button onclick="addLayer()">Adicionar camada</button>
 
 <button onclick="toggleTimeline()">☰</button>
@@ -132,7 +183,7 @@ step="1">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script src="https://unpkg.com/geoblaze/dist/geoblaze.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/geoblaze/dist/geoblaze.min.js"></script>
 
 <canvas id="chart" width="400" height="200"></canvas>
 

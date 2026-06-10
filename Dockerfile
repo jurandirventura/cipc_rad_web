@@ -5,7 +5,11 @@ WORKDIR /app
 COPY . .
 
 #RUN pip install flask georaster georaster-layer-for-leaflet
-RUN pip install flask georaster
+RUN pip install \
+    flask \
+    pandas \
+    numpy \
+    georaster
 
 EXPOSE 5000
 

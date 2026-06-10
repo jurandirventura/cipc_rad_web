@@ -22,3 +22,15 @@ c43ecf999486   cipc_rad_web-web         "python app.py"          4 hours ago    
 Acesso: 
 http://localhost:5000/
 
+
+Adicionando CETESB
+Flask
+ └── /api/cetesb/stations
+           ↓
+viewer.js
+ └── fetch(...)
+           ↓
+Leaflet
+ └── L.marker(...)
+           ↓
+Mapa mostra estações CETESB

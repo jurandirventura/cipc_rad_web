@@ -8,4 +8,5 @@ services:
     volumes:
       - /home/jurandir/cipc_output:/data
       - /home/jurandir/cipc_rad/config:/config
+      - /home/jurandir/cipc_data/cetesb:/data/cetesb
     restart: always
