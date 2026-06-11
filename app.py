@@ -7,6 +7,19 @@ from flask import request
 import pandas as pd
 
 
+import sys
+
+sys.path.append("/backend/src/processing")
+
+from cetesb.csv_reader import load_cetesb_data
+from cetesb.stations import load_stations
+
+from satellite.indexer import build_satellite_index
+from satellite.timeseries import get_satellite_series
+from satellite.raster_reader import get_satellite_mean
+
+from cetesb_compare import compare_station
+
 app = Flask(__name__)
 
 #DATA_DIR = "/home/jurandir/cipc_output/geotiff"
@@ -16,6 +29,10 @@ DATA_DIR = "/data/geotiff"
 
 # (mapeado) CETESB_JSON = "/home/jurandir/cipc_data/cetesb/lista_estacoes.json"
 CETESB_JSON = "/data/cetesb/lista_estacoes.json"
+
+# Dados CSV CETESB
+CETESB_CSV = "/data/cetesb/media_diaria_csvs"
+
 # ---------------------------------------------------
 @app.route("/")
 def index():
@@ -138,67 +155,81 @@ def cetesb_stations():
     return jsonify(data)
 
 
-# # API flask para comparação
-# @app.route("/api/compare_series")
-# def compare_series():
-
-#     codigo = request.args.get("station")
-
-#     cetesb_gases = request.args.getlist("cetesb")
-#     sat_gases = request.args.getlist("sat")
-
-#     start = request.args.get("start")
-#     end = request.args.get("end")
-
-#     print(codigo)
-#     print(cetesb_gases)
-#     print(sat_gases)
-
-#     return jsonify({
-#         "station": codigo,
-#         "cetesb": cetesb_gases,
-#         "sat": sat_gases,
-#         "start": start,
-#         "end": end
-#     })
-
-# API flask para comparação
 @app.route("/api/compare_series")
 def compare_series():
 
-    codigo = request.args.get("station")
+    try:
 
-    cetesb_gases = request.args.getlist("cetesb")
-    sat_gases = request.args.getlist("sat")
+        codigo = request.args.get("station")
 
-    start = request.args.get("start")
-    end = request.args.get("end")
+        cetesb_gases = request.args.getlist("cetesb")
+        sat_gases = request.args.getlist("sat")
 
-    print(codigo)
-    print(cetesb_gases)
-    print(sat_gases)
+        start = request.args.get("start")
+        end = request.args.get("end")
 
-    data_inicio = pd.to_datetime(start)
-    data_fim = pd.to_datetime(end)
+        print("codigo=", codigo)
+        print("cetesb=", cetesb_gases)
+        print("sat=", sat_gases)
 
-    resultado = {
-        "station": codigo,
-        "series": []
-    }
+        data_inicio = pd.to_datetime(start)
+        data_fim = pd.to_datetime(end)
 
-    # TEMPORÁRIO
-    datas = pd.date_range(
-        data_inicio,
-        data_fim,
-        freq="D"
-    )
+        try:
+            df = load_cetesb_data(
+                input_dir=(CETESB_CSV),
+                estacoes=[codigo],
+                poluentes=cetesb_gases,
+                data_inicio=data_inicio,
+                data_fim=data_fim
+            )
+        except Exception as e:
+            return jsonify({
+                "erro": str(e)
+            }), 200
 
-    resultado["dates"] = [
-        d.strftime("%Y-%m-%d")
-        for d in datas
-    ]
 
-    return jsonify(resultado)
+        print(df.columns.tolist())
+        print(df.head())
+
+        return jsonify({"ok": True})
+
+    except Exception as e:
+
+        import traceback
+        traceback.print_exc()
+
+        return jsonify({
+            "erro": str(e)
+        }), 500
+
+
+
+# Caminho dos dados
+STATIONS_DF, STATIONS_DICT = load_stations(
+    CETESB_JSON
+)
+
+# SAT_INDEX = {
+#     "O3": build_satellite_index(
+#         "/data/geotiff/ozone_total_vertical_column"
+#     ),
+#     "CO": build_satellite_index(
+#         "/data/geotiff/carbonmonoxide_total_column"
+#     ),
+#     "AI": build_satellite_index(
+#         "/data/geotiff/aerosol_index_354_388"
+#     ),
+#     "NO2": build_satellite_index(
+#         "/data/geotiff/nitrogendioxide_tropospheric_column"
+#     ),
+#     "SO2": build_satellite_index(
+#         "/data/geotiff/sulfurdioxide_total_vertical_column"
+#     ),
+#     "CH4": build_satellite_index(
+#         "/data/geotiff/methane_mixing_ratio"
+#     )
+# }
 
 
 

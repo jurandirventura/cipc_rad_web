@@ -61,63 +61,63 @@ loadCetesbStations()
 
 //----------------------
 
-// async function compareSeries() {
+async function compareSeries() {
 
-//     if(!selectedStation){
-//         alert("Selecione uma estação CETESB");
-//         return;
-//     }
+    if(!selectedStation){
+        alert("Selecione uma estação CETESB");
+        return;
+    }
 
-//     console.log(
-//         "selectedStation=",
-//         selectedStation
-//     );
+    console.log(
+        "selectedStation=",
+        selectedStation
+    );
 
-//     let cetesb=[];
+    let cetesb=[];
 
-//     document
-//       .querySelectorAll(".cetesbGas:checked")
-//       .forEach(cb => cetesb.push(cb.value));
+    document
+      .querySelectorAll(".cetesbGas:checked")
+      .forEach(cb => cetesb.push(cb.value));
 
-//     console.log("cetesb=", cetesb);
+    console.log("cetesb=", cetesb);
 
-//     let sat=[];
+    let sat=[];
 
-//     document
-//       .querySelectorAll(".satGas:checked")
-//       .forEach(cb => sat.push(cb.value));
+    document
+      .querySelectorAll(".satGas:checked")
+      .forEach(cb => sat.push(cb.value));
 
-//     console.log("sat=", sat);
+    console.log("sat=", sat);
 
-//     let start =
-//       document.getElementById("startDate").value;
+    let start =
+      document.getElementById("startDate").value;
 
-//     let end =
-//       document.getElementById("endDate").value;
+    let end =
+      document.getElementById("endDate").value;
 
-//     let url =
-//       `/api/compare_series?station=${selectedStation.codigo}`;
+    let url =
+      `/api/compare_series?station=${selectedStation.codigo}`;
 
-//     cetesb.forEach(g =>
-//         url += `&cetesb=${g}`
-//     );
+    cetesb.forEach(g =>
+        url += `&cetesb=${g}`
+    );
 
-//     sat.forEach(g =>
-//         url += `&sat=${g}`
-//     );
+    sat.forEach(g =>
+        url += `&sat=${g}`
+    );
 
-//     url += `&start=${start}`;
-//     url += `&end=${end}`;
+    url += `&start=${start}`;
+    url += `&end=${end}`;
 
-//     console.log("URL=", url);
+    console.log("URL=", url);
 
-//     let resp = await fetch(url);
+    let resp = await fetch(url);
 
-//     let data = await resp.json();
+    let data = await resp.json();
 
-//     console.log("RETORNO=", data);
+    console.log("RETORNO=", data);
 
-// }
+}
 
 // ----------------------------------------------------
 

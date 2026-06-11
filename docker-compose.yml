@@ -8,5 +8,6 @@ services:
     volumes:
       - /home/jurandir/cipc_output:/data
       - /home/jurandir/cipc_rad/config:/config
-      - /home/jurandir/cipc_data/cetesb:/data/cetesb
+      - /home/jurandir/cipc_data/cetesb/lista_estacoes.json:/data/cetesb/lista_estacoes.json   
+      - /home/jurandir/cipc_rad/src/processing:/backend/src/processing  
     restart: always
