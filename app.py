@@ -192,7 +192,26 @@ def compare_series():
         print(df.columns.tolist())
         print(df.head())
 
-        return jsonify({"ok": True})
+        # return jsonify({"ok": True})
+        return jsonify({
+            "dates":[
+                "2024-08-15",
+                "2024-08-16",
+                "2024-08-17",
+                "2024-08-18"
+            ],
+            "series":[
+                {
+                    "name":"CETESB CO",
+                    "values":[1,2,3,2]
+                },
+                {
+                    "name":"S5P CO",
+                    "values":[2,3,4,5]
+                }
+            ]
+        })    
+
 
     except Exception as e:
 
@@ -202,6 +221,30 @@ def compare_series():
         return jsonify({
             "erro": str(e)
         }), 500
+    
+
+
+
+# Verifica as estações que tem arquivos de dados csv
+# e comunica com o viewer.js e deixa o marcador na 
+# cor cinza. 
+@app.route("/api/cetesb/stations_with_data")
+def stations_with_data():
+
+    pasta = "/data/cetesb/media_diaria_csvs"
+
+    codigos = set()
+
+    if os.path.exists(pasta):
+
+        for f in os.listdir(pasta):
+
+            if f.endswith(".csv"):
+
+                codigo = f.split("_")[0]
+                codigos.add(codigo)
+
+    return jsonify(sorted(list(codigos)))
 
 
 
