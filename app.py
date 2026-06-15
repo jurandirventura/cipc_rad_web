@@ -176,42 +176,150 @@ def compare_series():
         data_fim = pd.to_datetime(end)
 
         try:
+
             df = load_cetesb_data(
-                input_dir=(CETESB_CSV),
+                input_dir=CETESB_CSV,
                 estacoes=[codigo],
                 poluentes=cetesb_gases,
                 data_inicio=data_inicio,
                 data_fim=data_fim
             )
+
         except Exception as e:
+
             return jsonify({
                 "erro": str(e)
             }), 200
 
+        if df is None or len(df) == 0:
+
+            return jsonify({
+                "erro": "Nenhum dado encontrado."
+            }), 200
 
         print(df.columns.tolist())
         print(df.head())
 
-        # return jsonify({"ok": True})
-        return jsonify({
-            "dates":[
-                "2024-08-15",
-                "2024-08-16",
-                "2024-08-17",
-                "2024-08-18"
-            ],
-            "series":[
-                {
-                    "name":"CETESB CO",
-                    "values":[1,2,3,2]
-                },
-                {
-                    "name":"S5P CO",
-                    "values":[2,3,4,5]
-                }
-            ]
-        })    
+        # -----------------------------
+        # Normaliza datas
+        # -----------------------------
+        df["datetime"] = pd.to_datetime(df["datetime"])
 
+        # -----------------------------
+        # Descobre coluna de valor
+        # -----------------------------
+        valor_col = None
+
+        for c in [
+            "Valor Diário",
+            "valor_diario",
+            "value",
+            "valor"
+        ]:
+            if c in df.columns:
+                valor_col = c
+                break
+
+        if valor_col is None:
+
+            return jsonify({
+                "erro":
+                f"Coluna de valor não encontrada. Colunas={df.columns.tolist()}"
+            }), 200
+
+        # -----------------------------
+        # Datas do gráfico
+        # -----------------------------
+        dates = sorted(
+            df["datetime"]
+            .dt.strftime("%Y-%m-%d")
+            .unique()
+            .tolist()
+        )
+
+        series = []
+
+        # -----------------------------
+        # CETESB
+        # -----------------------------
+        for pol in cetesb_gases:
+
+            df_pol = df[
+                df["pollutant"] == pol
+            ].copy()
+
+            if len(df_pol) == 0:
+
+                print(
+                    f"Sem dados para {pol}"
+                )
+
+                continue
+
+            df_pol = df_pol.sort_values(
+                "datetime"
+            )
+
+            valores = []
+
+            for d in dates:
+
+                linha = df_pol[
+                    df_pol["datetime"]
+                    .dt.strftime("%Y-%m-%d") == d
+                ]
+
+                if len(linha):
+
+                    valores.append(
+                        float(
+                            linha.iloc[0][valor_col]
+                        )
+                    )
+
+                else:
+
+                    valores.append(None)
+
+            series.append({
+                "name": f"CETESB {pol}",
+                "values": valores
+            })
+
+        # -----------------------------
+        # SATÉLITE (temporário)
+        # -----------------------------
+        #
+        # Depois vamos substituir por
+        # get_satellite_series()
+        #
+        for pol in sat_gases:
+
+            valores = []
+
+            for i in range(len(dates)):
+
+                valores.append(None)
+
+            series.append({
+                "name": f"S5P {pol}",
+                "values": valores
+            })
+
+        print("DATES=", dates)
+
+        print("SERIES=")
+
+        for s in series:
+            print(
+                s["name"],
+                len(s["values"])
+            )
+
+        return jsonify({
+            "dates": dates,
+            "series": series
+        })
 
     except Exception as e:
 
@@ -221,6 +329,83 @@ def compare_series():
         return jsonify({
             "erro": str(e)
         }), 500
+
+
+
+
+# def compare_series():
+
+#     try:
+
+#         codigo = request.args.get("station")
+
+#         cetesb_gases = request.args.getlist("cetesb")
+#         sat_gases = request.args.getlist("sat")
+
+#         start = request.args.get("start")
+#         end = request.args.get("end")
+
+#         print("codigo=", codigo)
+#         print("cetesb=", cetesb_gases)
+#         print("sat=", sat_gases)
+
+#         data_inicio = pd.to_datetime(start)
+#         data_fim = pd.to_datetime(end)
+
+#         try:
+#             df = load_cetesb_data(
+#                 input_dir=(CETESB_CSV),
+#                 estacoes=[codigo],
+#                 poluentes=cetesb_gases,
+#                 data_inicio=data_inicio,
+#                 data_fim=data_fim
+#             )
+#         except Exception as e:
+#             return jsonify({
+#                 "erro": str(e)
+#             }), 200
+
+
+#         print(df.columns.tolist())
+#         print(df.head())
+
+
+
+#         print(df[[
+#             "datetime",
+#             "pollutant",
+#             "Valor Diário"
+#         ]].head(20))        
+
+#         # return jsonify({"ok": True})
+#         return jsonify({
+#             "dates":[
+#                 "2024-08-15",
+#                 "2024-08-16",
+#                 "2024-08-17",
+#                 "2024-08-18"
+#             ],
+#             "series":[
+#                 {
+#                     "name":"CETESB CO",
+#                     "values":[1,2,3,2]
+#                 },
+#                 {
+#                     "name":"S5P CO",
+#                     "values":[2,3,4,5]
+#                 }
+#             ]
+#         })    
+
+
+#     except Exception as e:
+
+#         import traceback
+#         traceback.print_exc()
+
+#         return jsonify({
+#             "erro": str(e)
+#         }), 500
     
 
 

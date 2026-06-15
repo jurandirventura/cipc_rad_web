@@ -347,14 +347,11 @@ function drawCompareChart(data)
     console.log("SERIES=", data.series);
 
     let ctx =
-        document.getElementById("pixelChart");
-
-    console.log("CANVAS=", ctx);
-
-    let ctx =
         document
         .getElementById("pixelChart")
         .getContext("2d");
+
+    console.log("CANVAS=", ctx);
         
     document.getElementById(
         "chartPanel"
@@ -386,7 +383,7 @@ function drawCompareChart(data)
         data.dates
     );
 
-
+    console.log("DATASETS=", datasets);
 
     window.compareChart =
         new Chart(ctx,{
@@ -396,7 +393,10 @@ function drawCompareChart(data)
                 datasets:datasets
             }
         });
-}
+    
+        console.log("CRIANDO CHART");
+
+    }
 
 
 function createLegend(cmap, nome, layer){
@@ -1077,66 +1077,112 @@ document.onmousemove=null
 
 function drawCompareChart(data){
     
+{
     console.log("ENTROU NO GRÁFICO");
-    
-    const ctx =
-      document.getElementById("pixelChart");
 
-    if(compareChart){
-        compareChart.destroy();
+    document.getElementById(
+        "chartPanel"
+    ).style.display = "block";
+
+    const canvas =
+        document.getElementById(
+            "pixelChart"
+        );
+
+    if(window.compareChart)
+    {
+        window.compareChart.destroy();
     }
 
-    let datasets = [];
+    let datasets=[];
 
-    data.series.forEach((serie,idx)=>{
-
+    data.series.forEach(s =>
+    {
         datasets.push({
-            label: serie.name,
-            data: serie.values,
-            borderWidth: 2,
-            fill: false,
-            tension: 0.2
+            label:s.name,
+            data:s.values,
+            tension:0.3
         });
-
     });
 
-    compareChart = new Chart(ctx,{
-        type:"line",
-        data:{
-            labels:data.dates,
-            datasets:datasets
-        },
-        options:{
-            responsive:true,
-            interaction:{
-                mode:"index",
-                intersect:false
+    window.compareChart =
+        new Chart(canvas,{
+            type:"line",
+            data:{
+                labels:data.dates,
+                datasets:datasets
             },
-            plugins:{
-                title:{
-                    display:true,
-                    text:
-                      `${selectedStation.nome}`
-                }
-            },
-            scales:{
-                x:{
-                    title:{
-                        display:true,
-                        text:"Data"
-                    }
-                },
-                y:{
-                    title:{
-                        display:true,
-                        text:"Valor"
-                    }
-                }
+            options:{
+                responsive:true,
+                maintainAspectRatio:false
             }
-        }
-    });
+        });
+    }
+}    
 
-}
+
+
+
+//     console.log("ENTROU NO GRÁFICO");
+    
+//     const ctx =
+//       document.getElementById("pixelChart");
+
+//     if(compareChart){
+//         compareChart.destroy();
+//     }
+
+//     let datasets = [];
+
+//     data.series.forEach((serie,idx)=>{
+
+//         datasets.push({
+//             label: serie.name,
+//             data: serie.values,
+//             borderWidth: 2,
+//             fill: false,
+//             tension: 0.2
+//         });
+
+//     });
+
+//     compareChart = new Chart(ctx,{
+//         type:"line",
+//         data:{
+//             labels:data.dates,
+//             datasets:datasets
+//         },
+//         options:{
+//             responsive:true,
+//             interaction:{
+//                 mode:"index",
+//                 intersect:false
+//             },
+//             plugins:{
+//                 title:{
+//                     display:true,
+//                     text:
+//                       `${selectedStation.nome}`
+//                 }
+//             },
+//             scales:{
+//                 x:{
+//                     title:{
+//                         display:true,
+//                         text:"Data"
+//                     }
+//                 },
+//                 y:{
+//                     title:{
+//                         display:true,
+//                         text:"Valor"
+//                     }
+//                 }
+//             }
+//         }
+//     });
+
+// }
 
 
 // ---------------------
