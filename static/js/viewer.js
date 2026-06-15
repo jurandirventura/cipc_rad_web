@@ -42,6 +42,52 @@ var selectedStation = null
 // Váriável global para o gráfico de comparação
 let compareChart = null;
 
+// Cores dos produtos no gráfico
+const COLORS = {
+
+    "O3":"blue",
+    "CO":"red",
+    "MP10":"purple",
+    "MP25":"brown",
+    "NO2":"orange",
+    "SO2":"green",
+
+    "AI":"darkviolet",
+
+    "CH4":"olive"
+};
+
+const LEGEND_ORDER = [
+
+    "CETESB O3",
+    "S5P O3",
+
+    "CETESB MP25",
+    "CETESB MP10",
+    "S5P AI",
+
+    "CETESB NO2",
+    "S5P NO2",
+
+    "CETESB SO2",
+    "S5P SO2",
+
+    "CETESB CO",
+    "S5P CO",
+
+    "S5P CH4"
+];
+
+
+UNIDADES = {
+
+    "O3":"µg/m³",
+    "NO2":"µg/m³",
+    "SO2":"µg/m³",
+    "CO":"ppm",
+    "MP10":"µg/m³",
+    "MP25":"µg/m³"
+}
 // ---------------------
 async function init(){
 
@@ -125,9 +171,6 @@ async function compareSeries() {
     let data = await resp.json();
 
     console.log("RETORNO=", data);
-
-
-
 
     if(data.erro){
 
@@ -288,11 +331,6 @@ select.add(o)
 }
 
 // ---------------------
-// async function loadColormap(product){
-// const response = await fetch(`/api/colormap/${product}`)
-// return await response.json()
-// }
-
 async function loadColormap(product){
 
 if(colormapCache[product]){
@@ -334,6 +372,27 @@ function selectStation(codigo){
         }
     });
 
+}
+
+
+function markerToChartJS(marker)
+{
+    const map = {
+
+        "*": "star",
+
+        "^": "triangle",
+
+        "D": "rectRot",
+
+        "s": "rect",
+
+        "P": "crossRot",
+
+        "circle": "circle"
+    };
+
+    return map[marker] || "circle";
 }
 
 
@@ -468,6 +527,29 @@ return div
 }
 
 
+//----------------------
+// Seta cor para o gráfico
+function getSeriesColor(name){
+
+    if(name.includes("O3")) return "blue";
+
+    if(name.includes("CO")) return "red";
+
+    if(name.includes("MP10")) return "purple";
+
+    if(name.includes("MP25")) return "brown";
+
+    if(name.includes("NO2")) return "orange";
+
+    if(name.includes("SO2")) return "green";
+
+    if(name.includes("AI")) return "darkviolet";
+
+    if(name.includes("CH4")) return "olive";
+
+    return "black";
+}
+
 
 // ---------------------
 async function getGeoTiff(produto,data){
@@ -529,33 +611,6 @@ opacity:0.7,
 resolution:128,
 wrapX:false,
 
-
-// pixelValuesToColorFn:function(pixelValues){
-
-// let v=pixelValues[0]
-
-// if(v===-9999 || v===undefined) return null
-
-// let ratio=(v-cmap.vmin)/(cmap.vmax-cmap.vmin)
-// ratio=Math.max(0,Math.min(1,ratio))
-
-// return chroma.scale(cmap.colors)(ratio).hex()
-// }
-
-
-// FUNCIONOU APENAS PARA AREA QUEIMADA.
-// pixelValuesToColorFn:function(pixelValues){
-
-// let v = pixelValues[0]
-
-// // sem dado ou sem queimada → transparente
-// if(v === 0 || v === undefined) return null
-
-// // qualquer valor > 0 = área queimada
-// return "#000000"
-// }
-
-
 pixelValuesToColorFn:function(pixelValues){
 
 let v = pixelValues[0]
@@ -581,8 +636,6 @@ ratio = Math.max(0, Math.min(1, ratio))
 return chroma.scale(cmap.colors)(ratio).hex()
 
 }
-
-
 
 })
 }
@@ -744,27 +797,6 @@ fill:false
 options:{
 responsive:true,
 maintainAspectRatio:false,
-
-// plugins:{
-// title:{
-// display:true,
-// // text:title
-// text: `${title} | Lat: ${clickLat.toFixed(3)} Lon: ${clickLon.toFixed(3)}`
-// },
-// tooltip:{
-// enabled:true,
-// mode:'nearest',
-// intersect:false,  
-// callbacks:{
-// label:function(context){
-// return context.parsed.y+" "+unit
-// },
-// afterBody:function(){
-// return description
-// }
-// }
-// }
-// },
 
 plugins:{
 title:{
@@ -950,14 +982,6 @@ document.getElementById("chartPanel").style.display="none"
 
 
 // ---------------------
-// map.on("click",async function(e){
-
-// clickLat=e.latlng.lat
-// clickLon=e.latlng.lng
-
-// await buildPixelSeries()
-
-// })
 
 map.on("click", async function(e){
 
@@ -1075,6 +1099,36 @@ document.onmousemove=null
 }
 }
 
+
+function formatDateBR(dateStr)
+{
+    let p = dateStr.split("-");
+
+    return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+
+function markerToChartJS(marker)
+{
+    const markers = {
+
+        "*": "star",
+
+        "^": "triangle",
+
+        "D": "rectRot",
+
+        "s": "rect",
+
+        "P": "crossRot",
+
+        "circle": "circle"
+    };
+
+    return markers[marker] || "circle";
+}
+
+
 function drawCompareChart(data){
     
 {
@@ -1098,12 +1152,69 @@ function drawCompareChart(data){
 
     data.series.forEach(s =>
     {
+        const cor =
+            s.color ||
+            getSeriesColor(s.name);
+
+        const pointStyle =
+            markerToChartJS(
+                s.marker || "circle"
+            );
+
         datasets.push({
-            label:s.name,
-            data:s.values,
-            tension:0.3
+
+            label: s.name,
+
+            data: s.values,
+
+            unit: s.unit || "",
+
+            borderColor: cor,
+
+            backgroundColor: cor,
+
+            fill: false,
+
+            tension: 0.2,
+
+            borderWidth:
+                s.satellite ? 2 : 1.5,
+
+            borderDash:
+                s.satellite ? [8,4] : [],
+
+            pointRadius:
+                s.satellite ? 6 : 3,
+
+            pointHoverRadius:
+                s.satellite ? 8 : 5,
+
+            pointStyle: pointStyle,
+
+            yAxisID:
+                s.name.includes("CH4")
+                ? "y2"
+                : "y"
         });
     });
+
+    //
+    // ORDENA A LEGENDA
+    //
+    datasets.sort((a,b)=>
+    {
+        let ia = LEGEND_ORDER.indexOf(a.label);
+        let ib = LEGEND_ORDER.indexOf(b.label);
+
+        if(ia === -1) ia = 999;
+        if(ib === -1) ib = 999;
+
+        return ia - ib;
+    });
+
+    console.log("ORDEM FINAL:");
+    datasets.forEach(d => console.log(d.label));    
+
 
     window.compareChart =
         new Chart(canvas,{
@@ -1112,78 +1223,123 @@ function drawCompareChart(data){
                 labels:data.dates,
                 datasets:datasets
             },
+
+            // options:{
+
+            //     responsive:true,
+
+            //     maintainAspectRatio:false,
+
+            //     plugins: {
+
+            //         title: {
+            //             display: true,
+            //             text: [
+            //                 "Qualidade do Ar - Médias Diárias",
+            //                 `Estação: ${data.station.codigo} - ${data.station.nome}`,
+            //                 `Período: ${formatDateBR(data.start)} a ${formatDateBR(data.end)}`
+            //             ],
+            //             font: {
+            //                 size: 16,
+            //                 weight: "bold"
+            //             },
+            //             padding: {
+            //                 top: 10,
+            //                 bottom: 20
+            //             }
+            //         },
+
+            //         legend: {
+            //             position: "top"
+            //         }
+            //     }
+            // }                
+
             options:{
+
                 responsive:true,
-                maintainAspectRatio:false
-            }
+
+                maintainAspectRatio:false,
+
+                interaction:{
+                    mode:"index",
+                    intersect:false
+                },
+
+                plugins:{
+
+                    title:{
+                        display:true,
+                        text:[
+                            "Qualidade do Ar - Médias Diárias",
+                            `Estação: ${data.station.codigo} - ${data.station.nome}`,
+                            `Período: ${formatDateBR(data.start)} a ${formatDateBR(data.end)}`
+                        ]
+                    },
+
+                    legend:{
+                        position:"top"
+                    },
+
+                    // // Data do gráfico (parte inferior) em formato brasileiro
+                    // tooltip:{
+                    //     callbacks:{
+
+                    //         title:function(items){
+
+                    //             let d = items[0].label;
+
+                    //             return formatDateBR(d);
+                    //         },
+
+                    //         label:function(context){
+
+                    //             let ds = context.dataset;
+
+                    //             let valor = context.parsed.y;
+
+                    //             let unidade = ds.unit || "";
+
+                    //             return `${ds.label}: ${valor.toFixed(2)} ${unidade}`;
+                    //         }
+                    //     }
+                    // }
+
+
+                    tooltip:{
+                        callbacks:{
+
+                            title:function(items){
+
+                                return formatDateBR(
+                                    items[0].label
+                                );
+                            },
+
+                            label:function(context){
+
+                                let ds = context.dataset;
+
+                                let valor = context.parsed.y;
+
+                                if(valor == null)
+                                    return "";
+
+                                let unidade =
+                                    ds.unit || "";
+
+                                return `${ds.label}: ${valor.toFixed(2)} ${unidade}`;
+                            }
+                        }
+                    }
+
+                }
+            }            
+
+
         });
     }
 }    
-
-
-
-
-//     console.log("ENTROU NO GRÁFICO");
-    
-//     const ctx =
-//       document.getElementById("pixelChart");
-
-//     if(compareChart){
-//         compareChart.destroy();
-//     }
-
-//     let datasets = [];
-
-//     data.series.forEach((serie,idx)=>{
-
-//         datasets.push({
-//             label: serie.name,
-//             data: serie.values,
-//             borderWidth: 2,
-//             fill: false,
-//             tension: 0.2
-//         });
-
-//     });
-
-//     compareChart = new Chart(ctx,{
-//         type:"line",
-//         data:{
-//             labels:data.dates,
-//             datasets:datasets
-//         },
-//         options:{
-//             responsive:true,
-//             interaction:{
-//                 mode:"index",
-//                 intersect:false
-//             },
-//             plugins:{
-//                 title:{
-//                     display:true,
-//                     text:
-//                       `${selectedStation.nome}`
-//                 }
-//             },
-//             scales:{
-//                 x:{
-//                     title:{
-//                         display:true,
-//                         text:"Data"
-//                     }
-//                 },
-//                 y:{
-//                     title:{
-//                         display:true,
-//                         text:"Valor"
-//                     }
-//                 }
-//             }
-//         }
-//     });
-
-// }
-
 
 // ---------------------
 // RESIZE OBSERVER

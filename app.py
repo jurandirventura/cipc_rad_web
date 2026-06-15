@@ -163,31 +163,29 @@ def compare_series():
 
         codigo = request.args.get("station")
 
-        linha = STATIONS_DF[
+        linha_estacao = STATIONS_DF[
             STATIONS_DF["codigo"].astype(str) == str(codigo)
         ]
 
-        if linha.empty:
+        if linha_estacao.empty:
 
             return jsonify({
                 "erro": f"Estação {codigo} não encontrada"
             }), 200
 
+        nome_estacao = linha_estacao.iloc[0]["nome"]
+
         lat_station = float(
-            linha.iloc[0]["latitude"]
+            linha_estacao.iloc[0]["latitude"]
         )
 
         lon_station = float(
-            linha.iloc[0]["longitude"]
+            linha_estacao.iloc[0]["longitude"]
         )
 
-        print(
-            f"Estação encontrada: {codigo}"
-        )
-
-        print(
-            f"Lat={lat_station} Lon={lon_station}"
-        )
+        print(f"Estação encontrada: {codigo}")
+        print(f"Nome={nome_estacao}")
+        print(f"Lat={lat_station} Lon={lon_station}")
 
         cetesb_gases = request.args.getlist(
             "cetesb"
@@ -299,16 +297,16 @@ def compare_series():
 
             for d in dates:
 
-                linha = df_pol[
+                linha_data = df_pol[
                     df_pol["datetime"]
                     .dt.strftime("%Y-%m-%d") == d
                 ]
 
-                if len(linha):
+                if len(linha_data):
 
                     valores.append(
                         float(
-                            linha.iloc[0][valor_col]
+                            linha_data.iloc[0][valor_col]
                         )
                     )
 
@@ -316,30 +314,26 @@ def compare_series():
 
                     valores.append(None)
 
+            cfg = CETESB_CONFIG.get(pol, {})
+
             series.append({
+
                 "name": f"CETESB {pol}",
-                "values": valores
+
+                "values": valores,
+
+                "color": cfg.get("color", "black"),
+
+                "unit": cfg.get("unit", ""),
+
+                "satellite": False,
+
+                "marker": "circle"
             })
 
         # -----------------------------
-        # SATÉLITE (temporário)
+        # SATÉLITE 
         # -----------------------------
-        #
-        # Depois vamos substituir por
-        # get_satellite_series()
-        #
-        # for pol in sat_gases:
-
-        #     valores = []
-
-        #     for i in range(len(dates)):
-
-        #         valores.append(None)
-
-        #     series.append({
-        #         "name": f"S5P {pol}",
-        #         "values": valores
-        #     })
 
         datas_unicas = pd.to_datetime(
             dates
@@ -384,12 +378,27 @@ def compare_series():
                     sat_map.get(d, None)
                 )
 
+            # series.append({
+
+            #     "name": f"S5P {pol}",
+
+            #     "values": valores
+            # })       
+
             series.append({
 
-                "name": f"S5P {pol}",
+                "name": cfg["label"],
 
-                "values": valores
-            })       
+                "values": valores,
+
+                "color": cfg["color"],
+
+                "marker": cfg["marker"],
+
+                "unit": cfg.get("unit",""),
+
+                "satellite": True
+            })
 
         print("DATES=", dates)
 
@@ -401,10 +410,22 @@ def compare_series():
                 len(s["values"])
             )
 
+        print("================================")
+        print("codigo =", codigo)
+        print("nome   =", nome_estacao)
+        print("================================")        
+
         return jsonify({
+            "station": {
+                "codigo": codigo,
+                "nome": nome_estacao
+            },
+            "start": start,
+            "end": end,
             "dates": dates,
             "series": series
         })
+
 
     except Exception as e:
 
@@ -444,6 +465,8 @@ STATIONS_DF, STATIONS_DICT = load_stations(
     CETESB_JSON
 )
 
+
+
 SAT_INDEX = {
     "O3": build_satellite_index(
         "/data/geotiff/ozone_total_vertical_column"
@@ -468,6 +491,41 @@ SAT_INDEX = {
 SAT_CONFIG = create_sat_config(
     SAT_INDEX
 )
+
+
+CETESB_CONFIG = {
+
+    "O3": {
+        "color": "blue",
+        "unit": "µg/m³"
+    },
+
+    "MP25": {
+        "color": "brown",
+        "unit": "µg/m³"
+    },
+
+    "MP10": {
+        "color": "purple",
+        "unit": "µg/m³"
+    },
+
+    "NO2": {
+        "color": "orange",
+        "unit": "µg/m³"
+    },
+
+    "SO2": {
+        "color": "green",
+        "unit": "µg/m³"
+    },
+
+    "CO": {
+        "color": "red",
+        "unit": "ppm"
+    }
+}
+
 
 if __name__ == "__main__":
     #app.run(debug=True)
