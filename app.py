@@ -6,7 +6,6 @@ import json
 from flask import request
 import pandas as pd
 
-
 import sys
 
 sys.path.append("/backend/src/processing")
@@ -19,6 +18,8 @@ from satellite.timeseries import get_satellite_series
 from satellite.raster_reader import get_satellite_mean
 
 from cetesb_compare import compare_station
+
+from config import create_sat_config
 
 app = Flask(__name__)
 
@@ -162,6 +163,40 @@ def compare_series():
 
         codigo = request.args.get("station")
 
+        linha = STATIONS_DF[
+            STATIONS_DF["codigo"].astype(str) == str(codigo)
+        ]
+
+        if linha.empty:
+
+            return jsonify({
+                "erro": f"Estação {codigo} não encontrada"
+            }), 200
+
+        lat_station = float(
+            linha.iloc[0]["latitude"]
+        )
+
+        lon_station = float(
+            linha.iloc[0]["longitude"]
+        )
+
+        print(
+            f"Estação encontrada: {codigo}"
+        )
+
+        print(
+            f"Lat={lat_station} Lon={lon_station}"
+        )
+
+        cetesb_gases = request.args.getlist(
+            "cetesb"
+        )
+
+        sat_gases = request.args.getlist(
+            "sat"
+        )
+
         cetesb_gases = request.args.getlist("cetesb")
         sat_gases = request.args.getlist("sat")
 
@@ -293,18 +328,68 @@ def compare_series():
         # Depois vamos substituir por
         # get_satellite_series()
         #
+        # for pol in sat_gases:
+
+        #     valores = []
+
+        #     for i in range(len(dates)):
+
+        #         valores.append(None)
+
+        #     series.append({
+        #         "name": f"S5P {pol}",
+        #         "values": valores
+        #     })
+
+        datas_unicas = pd.to_datetime(
+            dates
+        )
+
         for pol in sat_gases:
+
+            if pol not in SAT_CONFIG:
+
+                continue
+
+            cfg = SAT_CONFIG[pol]
+
+            sat_dates, sat_values = (
+                get_satellite_series(
+                    sat_index=cfg["index"],
+                    datas_unicas=datas_unicas,
+                    lat_station=lat_station,
+                    lon_station=lon_station,
+                    delta=0.05,
+                    scale=cfg["scale"]
+                )
+            )
+
+            sat_map = {}
+
+            for d, v in zip(
+                sat_dates,
+                sat_values
+            ):
+
+                sat_map[
+                    pd.Timestamp(d)
+                    .strftime("%Y-%m-%d")
+                ] = float(v)
 
             valores = []
 
-            for i in range(len(dates)):
+            for d in dates:
 
-                valores.append(None)
+                valores.append(
+                    sat_map.get(d, None)
+                )
 
             series.append({
+
                 "name": f"S5P {pol}",
+
                 "values": valores
-            })
+            })       
 
         print("DATES=", dates)
 
@@ -329,85 +414,6 @@ def compare_series():
         return jsonify({
             "erro": str(e)
         }), 500
-
-
-
-
-# def compare_series():
-
-#     try:
-
-#         codigo = request.args.get("station")
-
-#         cetesb_gases = request.args.getlist("cetesb")
-#         sat_gases = request.args.getlist("sat")
-
-#         start = request.args.get("start")
-#         end = request.args.get("end")
-
-#         print("codigo=", codigo)
-#         print("cetesb=", cetesb_gases)
-#         print("sat=", sat_gases)
-
-#         data_inicio = pd.to_datetime(start)
-#         data_fim = pd.to_datetime(end)
-
-#         try:
-#             df = load_cetesb_data(
-#                 input_dir=(CETESB_CSV),
-#                 estacoes=[codigo],
-#                 poluentes=cetesb_gases,
-#                 data_inicio=data_inicio,
-#                 data_fim=data_fim
-#             )
-#         except Exception as e:
-#             return jsonify({
-#                 "erro": str(e)
-#             }), 200
-
-
-#         print(df.columns.tolist())
-#         print(df.head())
-
-
-
-#         print(df[[
-#             "datetime",
-#             "pollutant",
-#             "Valor Diário"
-#         ]].head(20))        
-
-#         # return jsonify({"ok": True})
-#         return jsonify({
-#             "dates":[
-#                 "2024-08-15",
-#                 "2024-08-16",
-#                 "2024-08-17",
-#                 "2024-08-18"
-#             ],
-#             "series":[
-#                 {
-#                     "name":"CETESB CO",
-#                     "values":[1,2,3,2]
-#                 },
-#                 {
-#                     "name":"S5P CO",
-#                     "values":[2,3,4,5]
-#                 }
-#             ]
-#         })    
-
-
-#     except Exception as e:
-
-#         import traceback
-#         traceback.print_exc()
-
-#         return jsonify({
-#             "erro": str(e)
-#         }), 500
-    
-
 
 
 # Verifica as estações que tem arquivos de dados csv
@@ -438,28 +444,30 @@ STATIONS_DF, STATIONS_DICT = load_stations(
     CETESB_JSON
 )
 
-# SAT_INDEX = {
-#     "O3": build_satellite_index(
-#         "/data/geotiff/ozone_total_vertical_column"
-#     ),
-#     "CO": build_satellite_index(
-#         "/data/geotiff/carbonmonoxide_total_column"
-#     ),
-#     "AI": build_satellite_index(
-#         "/data/geotiff/aerosol_index_354_388"
-#     ),
-#     "NO2": build_satellite_index(
-#         "/data/geotiff/nitrogendioxide_tropospheric_column"
-#     ),
-#     "SO2": build_satellite_index(
-#         "/data/geotiff/sulfurdioxide_total_vertical_column"
-#     ),
-#     "CH4": build_satellite_index(
-#         "/data/geotiff/methane_mixing_ratio"
-#     )
-# }
+SAT_INDEX = {
+    "O3": build_satellite_index(
+        "/data/geotiff/ozone_total_vertical_column"
+    ),
+    "CO": build_satellite_index(
+        "/data/geotiff/carbonmonoxide_total_column"
+    ),
+    "AI": build_satellite_index(
+        "/data/geotiff/aerosol_index_354_388"
+    ),
+    "NO2": build_satellite_index(
+        "/data/geotiff/nitrogendioxide_tropospheric_column"
+    ),
+    "SO2": build_satellite_index(
+        "/data/geotiff/sulfurdioxide_total_vertical_column"
+    ),
+    "CH4": build_satellite_index(
+        "/data/geotiff/methane_mixing_ratio"
+    )
+}
 
-
+SAT_CONFIG = create_sat_config(
+    SAT_INDEX
+)
 
 if __name__ == "__main__":
     #app.run(debug=True)
