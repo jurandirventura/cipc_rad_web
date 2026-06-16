@@ -57,6 +57,27 @@ const COLORS = {
     "CH4":"olive"
 };
 
+// const LEGEND_ORDER = [
+
+//     "CETESB O3 (µg/m³)",
+//     "S5P O3",
+
+//     "CETESB MP25 (µg/m³)",
+//     "CETESB MP10 (µg/m³)",
+//     "S5P AI",
+
+//     "CETESB NO2 (µg/m³)",
+//     "S5P NO2",
+
+//     "CETESB SO2 (µg/m³)",
+//     "S5P SO2",
+
+//     "CETESB CO (ppm)",
+//     "S5P CO",
+
+//     "S5P CH4"
+// ];
+
 const LEGEND_ORDER = [
 
     "CETESB O3",
@@ -169,6 +190,8 @@ async function compareSeries() {
     let resp = await fetch(url);
 
     let data = await resp.json();
+
+    window.lastCompareData = data;
 
     console.log("RETORNO=", data);
 
@@ -879,56 +902,122 @@ return null
 return r.values[0][row][col]
 }
 
-function downloadChartPNG(){
 
-if(!pixelChart){
-alert("Nenhum gráfico disponível")
-return
+function getCurrentChart()
+{
+    if(window.compareChart)
+        return window.compareChart;
+
+    if(pixelChart)
+        return pixelChart;
+
+    return null;
 }
 
-let url = pixelChart.toBase64Image()
 
-let a = document.createElement("a")
-a.href = url
-a.download = "serie_temporal.png"
-a.click()
+function downloadChartPNG()
+{
+    let chart = getCurrentChart();
 
+    if(!chart){
+        alert("Nenhum gráfico disponível");
+        return;
+    }
+
+    let url = chart.toBase64Image();
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "grafico.png";
+    a.click();
 }
 
 // ---------------------
+function downloadChartJPG()
+{
+    let canvas =
+        document.getElementById("pixelChart");
 
-function downloadChartJPG(){
+    let tempCanvas =
+        document.createElement("canvas");
 
-if(!pixelChart){
-alert("Nenhum gráfico disponível")
-return
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+
+    let ctx =
+        tempCanvas.getContext("2d");
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(
+        0,
+        0,
+        tempCanvas.width,
+        tempCanvas.height
+    );
+
+    ctx.drawImage(canvas,0,0);
+
+    let url =
+        tempCanvas.toDataURL(
+            "image/jpeg",
+            0.95
+        );
+
+    let a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+        "grafico.jpg";
+
+    a.click();
 }
 
-let canvas = document.getElementById("pixelChart")
 
-// cria canvas temporário com fundo branco
-let tempCanvas = document.createElement("canvas")
-tempCanvas.width = canvas.width
-tempCanvas.height = canvas.height
 
-let ctx = tempCanvas.getContext("2d")
+// function downloadChartJPG(){
+// {
+//     let chart = getCurrentChart();
 
-// fundo branco
-ctx.fillStyle = "#FFFFFF"
-ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
+//     if(!chart){
+//         alert("Nenhum gráfico disponível");
+//         return;
+//     }
 
-// desenha o gráfico por cima
-ctx.drawImage(canvas, 0, 0)
+//     let url = chart.toBase64Image();
 
-// exporta como JPG
-let url = tempCanvas.toDataURL("image/jpeg", 0.95)
+//     let a = document.createElement("a");
+//     a.href = url;
+//     a.download = "grafico.jpg";
+//     a.click();
+// }
 
-let a = document.createElement("a")
-a.href = url
-a.download = "serie_temporal.jpg"
-a.click()
+// let canvas = document.getElementById("pixelChart")
 
-}
+// // cria canvas temporário com fundo branco
+// let tempCanvas = document.createElement("canvas")
+// tempCanvas.width = canvas.width
+// tempCanvas.height = canvas.height
+
+// let ctx = tempCanvas.getContext("2d")
+
+// // fundo branco
+// ctx.fillStyle = "#FFFFFF"
+// ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
+
+// // desenha o gráfico por cima
+// ctx.drawImage(canvas, 0, 0)
+
+// // exporta como JPG
+// let url = tempCanvas.toDataURL("image/jpeg", 0.95)
+
+// let a = document.createElement("a")
+// a.href = url
+// a.download = "serie_temporal.jpg"
+// a.click()
+
+// }
 
 // ---------------------
 function toggleTimeline(){
@@ -945,34 +1034,109 @@ map.invalidateSize()
 }
 
 // ---------------------
+function downloadCSV()
+{
+    let chart = getCurrentChart();
 
-function downloadCSV(){
+    if(!chart){
+        alert("Nenhum gráfico disponível");
+        return;
+    }
 
-if(!pixelChart){
-alert("Nenhum gráfico disponível")
-return
+    let csv = "";
+
+    if(window.lastCompareData)
+    {
+        csv += `Estação;${window.lastCompareData.station.codigo} - ${window.lastCompareData.station.nome}\n`;
+        csv += `Período;${window.lastCompareData.start} a ${window.lastCompareData.end}\n\n`;
+    }
+
+    csv += "Data";
+
+    chart.data.datasets.forEach(ds =>
+    {
+        csv += ";" + ds.label;
+    });
+
+    csv += "\n";
+
+    chart.data.labels.forEach((data, idx)=>
+    {
+        csv += data;
+
+        chart.data.datasets.forEach(ds =>
+        {
+            let valor = ds.data[idx];
+
+            csv += ";" +
+                (valor != null ? valor : "");
+        });
+
+        csv += "\n";
+    });
+
+    let blob =
+        new Blob(
+            [csv],
+            {type:"text/csv;charset=utf-8;"}
+        );
+
+    let url =
+        URL.createObjectURL(blob);
+
+    let a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+        "comparacao_cetesb_satelite.csv";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
 }
 
-let values = pixelChart.data.datasets[0].data
 
-// let csv="data,valor\n"
 
-let csv=`Lat: ${clickLat}, Lon: ${clickLon}\n`
-csv+="data,valor\n"
+// function downloadCSV(){
+// {
+//     let chart = getCurrentChart();
 
-for(let i=0;i<timelineDates.length;i++){
-csv+=timelineDates[i]+","+values[i]+"\n"
-}
+//     if(!chart){
+//         alert("Nenhum gráfico disponível");
+//         return;
+//     }
 
-let blob=new Blob([csv],{type:"text/csv"})
-let url=URL.createObjectURL(blob)
+//     let url = chart.toBase64Image();
 
-let a=document.createElement("a")
-a.href=url
-a.download="serie_temporal.csv"
-a.click()
+//     let a = document.createElement("a");
+//     a.href = url;
+//     // a.download = "grafico.csv";
+//     a.click();
+// }
 
-}
+
+// let values = pixelChart.data.datasets[0].data
+
+// // let csv="data,valor\n"
+
+// let csv=`Lat: ${clickLat}, Lon: ${clickLon}\n`
+// csv+="data,valor\n"
+
+// for(let i=0;i<timelineDates.length;i++){
+// csv+=timelineDates[i]+","+values[i]+"\n"
+// }
+
+// let blob=new Blob([csv],{type:"text/csv"})
+// let url=URL.createObjectURL(blob)
+
+// let a=document.createElement("a")
+// a.href=url
+// a.download="serie_temporal.csv"
+// a.click()
+
+// }
 
 // ---------------------
 
@@ -1163,18 +1327,17 @@ function drawCompareChart(data){
 
         datasets.push({
 
-            label: s.name,
+            label:
+                s.unit && s.unit !== ""
+                ? `${s.name} (${s.unit})`
+                : s.name,
 
             data: s.values,
 
-            unit: s.unit || "",
-
             borderColor: cor,
-
             backgroundColor: cor,
 
             fill: false,
-
             tension: 0.2,
 
             borderWidth:
@@ -1196,6 +1359,45 @@ function drawCompareChart(data){
                 ? "y2"
                 : "y"
         });
+
+
+
+
+        // datasets.push({
+
+        //     label: s.name,
+
+        //     data: s.values,
+
+        //     unit: s.unit || "",
+
+        //     borderColor: cor,
+
+        //     backgroundColor: cor,
+
+        //     fill: false,
+
+        //     tension: 0.2,
+
+        //     borderWidth:
+        //         s.satellite ? 2 : 1.5,
+
+        //     borderDash:
+        //         s.satellite ? [8,4] : [],
+
+        //     pointRadius:
+        //         s.satellite ? 6 : 3,
+
+        //     pointHoverRadius:
+        //         s.satellite ? 8 : 5,
+
+        //     pointStyle: pointStyle,
+
+        //     yAxisID:
+        //         s.name.includes("CH4")
+        //         ? "y2"
+        //         : "y"
+        // });
     });
 
     //
@@ -1343,11 +1545,21 @@ function drawCompareChart(data){
 
 // ---------------------
 // RESIZE OBSERVER
-const resizeObserver = new ResizeObserver(() => {
-if(pixelChart){
-pixelChart.resize()
-}
-})
+const resizeObserver =
+new ResizeObserver(() =>
+{
+    let chart =
+        getCurrentChart();
+
+    if(chart)
+        chart.resize();
+});
+
+// const resizeObserver = new ResizeObserver(() => {
+// if(pixelChart){
+// pixelChart.resize()
+// }
+// })
 
 // ---------------------
 document.getElementById("produto").onchange=loadAnos
