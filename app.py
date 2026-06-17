@@ -353,10 +353,21 @@ def compare_series():
                     datas_unicas=datas_unicas,
                     lat_station=lat_station,
                     lon_station=lon_station,
-                    delta=0.05,
+                    delta=0.5,
                     scale=cfg["scale"]
                 )
             )
+
+            print("\n======================")
+            print("PRODUTO:", pol)
+            print("INDEX DIR:", cfg["index"])
+            print("DATAS:", sat_dates)
+            print("VALORES:", sat_values)
+
+            if sat_values:
+                print("MIN:", min(sat_values))
+                print("MAX:", max(sat_values))
+            print("======================")
 
             sat_map = {}
 

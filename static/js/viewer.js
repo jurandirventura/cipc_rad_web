@@ -57,27 +57,6 @@ const COLORS = {
     "CH4":"olive"
 };
 
-// const LEGEND_ORDER = [
-
-//     "CETESB O3 (µg/m³)",
-//     "S5P O3",
-
-//     "CETESB MP25 (µg/m³)",
-//     "CETESB MP10 (µg/m³)",
-//     "S5P AI",
-
-//     "CETESB NO2 (µg/m³)",
-//     "S5P NO2",
-
-//     "CETESB SO2 (µg/m³)",
-//     "S5P SO2",
-
-//     "CETESB CO (ppm)",
-//     "S5P CO",
-
-//     "S5P CH4"
-// ];
-
 const LEGEND_ORDER = [
 
     "CETESB O3",
@@ -190,6 +169,10 @@ async function compareSeries() {
     let resp = await fetch(url);
 
     let data = await resp.json();
+
+    console.log(
+    JSON.stringify(data, null, 2)
+    );
 
     window.lastCompareData = data;
 
@@ -428,6 +411,35 @@ function drawCompareChart(data)
 
     console.log("SERIES=", data.series);
 
+    // Verificação de valores do gráfico
+    console.log("VERSAO NOVA 12345");
+    data.series.forEach(s => {
+
+        const validos =
+            s.values.filter(v => v !== null);
+
+        console.log(
+            s.name,
+            "MIN=", Math.min(...validos),
+            "MAX=", Math.max(...validos)
+        );
+    });
+
+    //console.log(JSON.stringify(data.series,null,2));
+    data.series.forEach(s => {
+
+        if (
+            s.name.includes("AI") ||
+            s.name.includes("CH4")
+        )
+        {
+            console.log("========");
+            console.log(s.name);
+            console.log(s.values);
+        }
+    });
+
+    
     let ctx =
         document
         .getElementById("pixelChart")
