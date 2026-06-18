@@ -88,6 +88,7 @@ UNIDADES = {
     "MP10":"µg/m³",
     "MP25":"µg/m³"
 }
+
 // ---------------------
 async function init(){
 
@@ -1574,9 +1575,19 @@ new ResizeObserver(() =>
 // })
 
 // ---------------------
-document.getElementById("produto").onchange=loadAnos
-document.getElementById("ano").onchange=loadDatas
-document.getElementById("timeSlider").oninput=updateTimeline
+// document.getElementById("produto").onchange=loadAnos
+// document.getElementById("ano").onchange=loadDatas
+// document.getElementById("timeSlider").oninput=updateTimeline
+
+const produto = document.getElementById("produto");
+const ano = document.getElementById("ano");
+const timeSlider = document.getElementById("timeSlider");
+
+if(produto) produto.onchange = loadAnos;
+if(ano) ano.onchange = loadDatas;
+if(timeSlider) timeSlider.oninput = updateTimeline;
+
+
 
 dragElement(document.getElementById("chartPanel"))
 resizeObserver.observe(document.getElementById("chartPanel"))

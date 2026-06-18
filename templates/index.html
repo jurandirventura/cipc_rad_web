@@ -14,181 +14,206 @@ href="/static/style.css"/>
 
 </head>
 
+
+
 <body>
 
-<div id="sidebar">
+<div id="mainContainer">
 
-<h2>CIPC Viewer</h2>
+    <!-- SIDEBAR -->
+    <div id="sidebar">
 
-Produto<br>
-<select id="produto"></select><br><br>
+        <h2>CIPC Viewer</h2>
+       
+        <!-- Datas -->
+        <div style="display:flex; gap:10px;">
 
-Ano<br>
-<select id="ano"></select><br><br>
+            <div>
+                <b>Data inicial</b><br>
+                <input type="date" id="startDate">
+            </div>
 
-Data<br>
-<select id="data"></select><br><br>
+            <div>
+                <b>Data final</b><br>
+                <input type="date" id="endDate">
+            </div>
 
+        </div>
 
-<h4>CETESB</h4>
+        <hr>
 
-</label>
+        <!-- CETESB -->
+        <h3>CETESB</h3>
 
-<label>
-<input type="checkbox" value="O3" class="cetesbGas">
-O3
-</label>
+        <label><input type="checkbox" value="O3" class="cetesbGas"> O3</label>
+        <label><input type="checkbox" value="MP25" class="cetesbGas"> MP2.5</label>
+        <label><input type="checkbox" value="MP10" class="cetesbGas"> MP10</label>
+        <label><input type="checkbox" value="NO2" class="cetesbGas"> NO2</label>
+        <label><input type="checkbox" value="SO2" class="cetesbGas"> SO2</label>
+        <label><input type="checkbox" value="CO" class="cetesbGas"> CO</label>
 
-<label>
-<input type="checkbox" value="MP25" class="cetesbGas">
-MP2.5
-</label>
+        <br><br>
 
-<label>
-<input type="checkbox" value="MP10" class="cetesbGas">
-MP10
-</label>
+        <!-- Sentinel -->
+        <h3>Sentinel-5P</h3>
 
-<label>
-<input type="checkbox" value="NO2" class="cetesbGas">
-NO2
-</label>
+        <label><input type="checkbox" value="O3" class="satGas"> O3</label>
+        <label><input type="checkbox" value="AI" class="satGas"> AI</label>
+        <label><input type="checkbox" value="NO2" class="satGas"> NO2</label>
+        <label><input type="checkbox" value="SO2" class="satGas"> SO2</label>
+        <label><input type="checkbox" value="CO" class="satGas"> CO</label>
+        <label><input type="checkbox" value="CH4" class="satGas"> CH4</label>
 
-<label>
-<input type="checkbox" value="SO2" class="cetesbGas">
-SO2
-</label>
+        <br><br>
 
-<label>
-<input type="checkbox" value="CO" class="cetesbGas">
-CO
-</label>
+        <button onclick="compareSeries()">
+            Comparar
+        </button>
 
+        <hr>
 
-<h4>Sentinel-5P</h4>
+        <b>Produto</b><br>
+        <select id="produto"></select>
 
-<label><input type="checkbox" value="O3" class="satGas">O3</label>
-<label><input type="checkbox" value="AI" class="satGas">AI</label>
-<label><input type="checkbox" value="NO2" class="satGas">NO2</label>
-<label><input type="checkbox" value="SO2" class="satGas">SO2</label>
-<label><input type="checkbox" value="CO" class="satGas">CO</label>
-<label><input type="checkbox" value="CH4" class="satGas">CH4</label>
+        <br><br>
 
-<button onclick="compareSeries()">
-Comparar
-</button>
+        <div style="display:flex; gap:10px;">
 
+            <div>
+                <b>Ano</b><br>
+                <select id="ano"></select>
+            </div>
 
+            <div>
+                <b>Data</b><br>
+                <select id="data"></select>
+            </div>
 
-<button onclick="addLayer()">Adicionar camada</button>
+        </div>
 
-<button onclick="toggleTimeline()">☰</button>
+        <br>
 
-<hr>
+        <button onclick="addLayer()">
+            Adicionar camada
+        </button>
 
-<h3>Camadas</h3>
+        <br><br>
 
-<hr>
+        <div style="display:flex; gap:5px;">
 
-<div id="layersPanel"></div>
+            <button onclick="loadTimeline()">
+                Carregar Timeline
+            </button>
 
+            <button onclick="playTimeline()">
+                ▶ Play
+            </button>
 
-<div id="pixelValues"
-style="
-position:absolute;
-bottom:15px;
-right:15px;
-background:rgba(255,255,255,0.9);
-padding:10px;
-font-size:12px;
-border-radius:6px;
-box-shadow:0 0 6px rgba(0,0,0,0.3);
-z-index:1000;">
-Pixel values
+            <button onclick="stopTimeline()">
+                ■ Stop
+            </button>
+
+        </div>
+
+        <br><br>
+
+        <!-- Velocidade -->
+        Velocidade
+
+        <div style="display:flex;align-items:center;gap:10px;">
+
+            <input
+                id="speedSlider"
+                type="range"
+                min="100"
+                max="2000"
+                step="100"
+                value="500">
+
+            <span id="speedLabel">
+                500 ms
+            </span>
+
+        </div>
+
+        <br>
+
+        <!-- Timeline -->
+        <input
+            id="timeSlider"
+            type="range"
+            min="0"
+            max="0"
+            value="0"
+            step="1"
+            style="width:100%;">
+
+        <br>
+
+        <span id="timeLabel"></span>
+
+        <br><br>
+
+        <button onclick="downloadCSV()">
+            Download CSV
+        </button>
+
+        <hr>
+
+        <h3>Camadas</h3>
+
+        <div id="layersPanel"></div>
+
+        <hr>
+
+        <h3>Legendas</h3>
+
+        <div id="legendPanel"></div>
+
+    </div>
+
+    <!-- ÁREA DIREITA -->
+    <div id="content">
+
+        <!-- gráfico fixo -->
+        <div id="chartPanel">
+
+            <div id="chartHeader">
+                📊 Série Temporal
+            </div>
+
+            <canvas id="pixelChart"></canvas>
+
+        </div>
+
+        <!-- mapa -->
+        <div id="map"></div>
+
+    </div>
+
 </div>
 
-<h3>Legendas</h3>
-
-<div id="legendPanel"></div>
-
+<div id="pixelValues">
+    Pixel values
 </div>
 
-<!-- <div id="map"></div> -->
+<!-- Bibliotecas -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-<div id="map" style="height:100vh;"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Área para Timeline e gráfico-->
-
-<div id="timelinePanel">
-    
-    
-<h3>Timeline</h3>
-
-Data inicial<br>
-<input type="date" id="startDate"><br><br>
-
-Data final<br>
-<input type="date" id="endDate"><br><br>
-
-<button onclick="loadTimeline()">Carregar Timeline</button>
-<button onclick="playTimeline()">▶ Play</button>
-<button onclick="stopTimeline()">■ Stop</button>
-
-<br><br>
-
-Velocidade<br>
-<input id="speedSlider" type="range" min="100" max="2000" step="100" value="500">
-<span id="speedLabel">500 ms</span>
-
-<br><br>
-
-<input type="range"
-id="timeSlider"
-min="0"
-max="0"
-value="0"
-step="1">
-
-<br>
-
-<span id="timeLabel"></span>
-
-<br><br>
-
-<button onclick="downloadCSV()">Download CSV</button>
-
-</div>
-
-<div id="chartPanel" style="display:none;">
-  <div id="chartHeader">📊 Série Temporal (arrastar)</div>
-
-  <canvas id="pixelChart"></canvas>
-
-  <button onclick="downloadChartPNG()">PNG</button>
-  <button onclick="downloadChartJPG()">JPG</button>
-  <button onclick="downloadCSV()">CSV</button>
-  <button onclick="closeChart()">Fechar</button>
-</div>
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script src="https://unpkg.com/georaster"></script>
 
 <script src="https://unpkg.com/georaster-layer-for-leaflet"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/chroma-js@2.4.2/chroma.min.js"></script>
+
+<!-- Seu JS -->
 <script src="/static/js/viewer.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/geoblaze/dist/geoblaze.min.js"></script>
-
-<canvas id="chart" width="400" height="200"></canvas>
-
 
 </body>
 
-</html>
-
+</body>
