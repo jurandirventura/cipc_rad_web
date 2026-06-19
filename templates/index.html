@@ -2,19 +2,15 @@
 <html>
 
 <head>
+    <meta charset="utf-8">
+    <title>CIPC Viewer</title>
 
-<meta charset="utf-8">
-<title>CIPC Viewer</title>
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-<link rel="stylesheet"
-href="/static/style.css"/>
-
+    <link rel="stylesheet"
+          href="/static/style.css"/>
 </head>
-
-
 
 <body>
 
@@ -24,7 +20,7 @@ href="/static/style.css"/>
     <div id="sidebar">
 
         <h2>CIPC Viewer</h2>
-       
+
         <!-- Datas -->
         <div style="display:flex; gap:10px;">
 
@@ -120,7 +116,7 @@ href="/static/style.css"/>
         <!-- Velocidade -->
         Velocidade
 
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
 
             <input
                 id="speedSlider"
@@ -175,15 +171,38 @@ href="/static/style.css"/>
     <!-- ÁREA DIREITA -->
     <div id="content">
 
-        <!-- gráfico fixo -->
-        <div id="chartPanel">
+        <!-- gráfico suspenso -->
+        <div id="chartPanel" style="display:none;">
 
             <div id="chartHeader">
                 📊 Série Temporal
             </div>
 
+            <!-- gráfico CETESB x Sentinel -->
             <canvas id="pixelChart"></canvas>
 
+            <!-- gráfico timeline do pixel -->
+            <canvas id="timelineChart" style="display:none;"></canvas>
+
+            <div style="padding:5px;text-align:center;">
+
+                <button onclick="downloadChartPNG()">
+                    PNG
+                </button>
+
+                <button onclick="downloadChartJPG()">
+                    JPG
+                </button>
+
+                <button onclick="downloadCSV()">
+                    CSV
+                </button>
+
+                <button onclick="closeChart()">
+                    Fechar
+                </button>
+
+            </div>
         </div>
 
         <!-- mapa -->
@@ -215,5 +234,4 @@ href="/static/style.css"/>
 <script src="/static/js/viewer.js"></script>
 
 </body>
-
-</body>
+</html>

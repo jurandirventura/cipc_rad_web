@@ -26,36 +26,134 @@ body{
     height:100vh;
 } */
 
-#content{
+/* #content{
     flex:1;
     display:flex;
     flex-direction:column;
     height:100vh;
     min-height:0;
+} */
+
+#content{
+    flex:1;
+    position:relative;
+    height:100vh;
 }
 
 
-#chartPanel{
+/* #chartPanel{
     height:320px;
     border-bottom:1px solid #ccc;
     background:white;
+} */
+
+/* #chartPanel{
+
+    position:absolute;
+
+    top:100px;
+    left:100px;
+
+    width:600px;
+    height:350px;
+
+    background:white;
+
+    border:1px solid #ccc;
+
+    z-index:9999;
+
+    resize:both;
+    overflow:auto;
+
+    box-shadow:0 0 10px rgba(0,0,0,0.3);
+
+    display:none;
+} */
+
+/* #chartPanel{
+    position:absolute;
+
+    top:100px;
+    left:350px;
+
+    width:500px;
+    height:350px;
+
+    background:white;
+    border:1px solid #ccc;
+
+    z-index:9999;
+
+    resize:both;
+    overflow:auto;
+
+    box-shadow:0 0 10px rgba(0,0,0,0.3);
+} */
+
+#chartPanel{
+    position:absolute;
+    top:100px;
+    left:350px;
+
+    width:500px;
+    height:350px;
+
+    background:white;
+    border:1px solid #ccc;
+
+    z-index:9999;
+
+    resize:both;
+    overflow:auto;
+
+    box-shadow:0 0 10px rgba(0,0,0,0.3);
+
+    display:none;
+}
+
+
+#chartHeader{
+    background:#333;
+    color:white;
+    padding:5px;
+    cursor:move;
 }
 
 #pixelChart{
+    width:100%;
+    height:260px;
+}
+
+/* #pixelChart{
     width:100% !important;
     height:280px !important;
-}
+} */
+
+/* #pixelChart{
+    width:100% !important;
+    height:calc(100% - 40px) !important;
+} */
 
 /* #map{
     flex:1;
     width:100%;
 } */
 
-#map{
+/* #map{
     flex:1 1 auto;
     min-height:300px;
     width:100%;
+} */
+
+#map{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
 }
+
 
 #pixelValues{
     position:absolute;

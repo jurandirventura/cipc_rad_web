@@ -27,6 +27,9 @@ var pixelChart=null
 var clickLat=null
 var clickLon=null
 
+// timeline chart
+var timelineChart=null
+
 // Colormap cache
 var colormapCache = {}
 
@@ -806,10 +809,18 @@ timelineInterval = false
 
 function createPixelChart(values, cmap, produto){
 
-let ctx=document.getElementById("pixelChart").getContext("2d")
+//let ctx=document.getElementById("pixelChart").getContext("2d")
 
-if(pixelChart){
-pixelChart.destroy()
+let ctx =
+document.getElementById("timelineChart")
+.getContext("2d")
+
+// if(pixelChart){
+// pixelChart.destroy()
+// }
+
+if(timelineChart){
+timelineChart.destroy()
 }
 
 let title = cmap.title || produto
@@ -817,8 +828,12 @@ let shortName = cmap.short_name || produto
 let unit = cmap.unit || ""
 let description = cmap.description || ""
 
-pixelChart=new Chart(ctx,{
+// pixelChart=new Chart(ctx,{
+// type:"line",
+
+timelineChart=new Chart(ctx,{
 type:"line",
+
 
 data:{
 labels: timelineDates,
@@ -895,9 +910,15 @@ values.push(v)
 
 let cmap = await loadColormap(produto)
 
+document.getElementById("pixelChart").style.display = "none";
+document.getElementById("timelineChart").style.display = "block";
+
 createPixelChart(values,cmap,produto)
 
-document.getElementById("chartPanel").style.display="block"
+// document.getElementById("chartPanel").style.display="block"
+document.getElementById(
+"chartPanel"
+).style.display="block";
 }
 
 // ---------------------
@@ -916,10 +937,24 @@ return r.values[0][row][col]
 }
 
 
+// function getCurrentChart()
+// {
+//     if(window.compareChart)
+//         return window.compareChart;
+
+//     if(pixelChart)
+//         return pixelChart;
+
+//     return null;
+// }
+
 function getCurrentChart()
 {
     if(window.compareChart)
         return window.compareChart;
+
+    if(timelineChart)
+        return timelineChart;
 
     if(pixelChart)
         return pixelChart;
@@ -948,8 +983,18 @@ function downloadChartPNG()
 // ---------------------
 function downloadChartJPG()
 {
-    let canvas =
-        document.getElementById("pixelChart");
+    // let canvas =
+    //     document.getElementById("pixelChart");
+    let canvas;
+
+    if(document.getElementById("timelineChart").style.display !== "none")
+    {
+        canvas = document.getElementById("timelineChart");
+    }
+    else
+    {
+        canvas = document.getElementById("pixelChart");
+    }    
 
     let tempCanvas =
         document.createElement("canvas");
@@ -1430,6 +1475,8 @@ function drawCompareChart(data){
     console.log("ORDEM FINAL:");
     datasets.forEach(d => console.log(d.label));    
 
+    document.getElementById("pixelChart").style.display = "block";
+    document.getElementById("timelineChart").style.display = "none";
 
     window.compareChart =
         new Chart(canvas,{
