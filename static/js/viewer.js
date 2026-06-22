@@ -188,6 +188,10 @@ async function compareSeries() {
         return;
     }
 
+    document.getElementById(
+        "comparePanel"
+    ).style.display="block";
+
     drawCompareChart(data);
 
 }
@@ -406,96 +410,112 @@ function markerToChartJS(marker)
 }
 
 
-function drawCompareChart(data)
-{
+//-------------------
 
-    console.log("ENTROU NO GRÁFICO");
+function showPanel(id){
+    document.getElementById("comparePanel").style.display = "none";
+    document.getElementById("timelinePanel").style.display = "none";
+    document.getElementById(id).style.display = "block";
+}
 
-    console.log("DATES=", data.dates);
 
-    console.log("SERIES=", data.series);
+// function openComparePanel(){
+//     document.getElementById("comparePanel").style.display = "block";
+// }
 
-    // Verificação de valores do gráfico
-    console.log("VERSAO NOVA 12345");
-    data.series.forEach(s => {
+// ---------------
 
-        const validos =
-            s.values.filter(v => v !== null);
+// function drawCompareChart(data)
+// {
 
-        console.log(
-            s.name,
-            "MIN=", Math.min(...validos),
-            "MAX=", Math.max(...validos)
-        );
-    });
+//     console.log("ENTROU NO GRÁFICO");
 
-    //console.log(JSON.stringify(data.series,null,2));
-    data.series.forEach(s => {
+//     console.log("DATES=", data.dates);
 
-        if (
-            s.name.includes("AI") ||
-            s.name.includes("CH4")
-        )
-        {
-            console.log("========");
-            console.log(s.name);
-            console.log(s.values);
-        }
-    });
+//     console.log("SERIES=", data.series);
+
+//     // Verificação de valores do gráfico
+//     console.log("VERSAO NOVA 12345");
+//     data.series.forEach(s => {
+
+//         const validos =
+//             s.values.filter(v => v !== null);
+
+//         console.log(
+//             s.name,
+//             "MIN=", Math.min(...validos),
+//             "MAX=", Math.max(...validos)
+//         );
+//     });
+
+//     //console.log(JSON.stringify(data.series,null,2));
+//     data.series.forEach(s => {
+
+//         if (
+//             s.name.includes("AI") ||
+//             s.name.includes("CH4")
+//         )
+//         {
+//             console.log("========");
+//             console.log(s.name);
+//             console.log(s.values);
+//         }
+//     });
 
     
-    let ctx =
-        document
-        .getElementById("pixelChart")
-        .getContext("2d");
+//     let ctx =
+//         document
+//         .getElementById("pixelChart")
+//         .getContext("2d");
 
-    console.log("CANVAS=", ctx);
+//     console.log("CANVAS=", ctx);
         
-    document.getElementById(
-        "chartPanel"
-    ).style.display="block";
+//     document.getElementById(
+//         "comparePanel"
+//     ).style.display="block";
 
-    if(window.compareChart)
-    {
-        window.compareChart.destroy();
-    }
+//     if(window.compareChart)
+//     {
+//         window.compareChart.destroy();
+//     }
 
-    let datasets=[];
+//     let datasets=[];
 
-    data.series.forEach(s =>
-    {
-        datasets.push({
-            label:s.name,
-            data:s.values
-        });
-    });
+//     data.series.forEach(s =>
+//     {
+//         datasets.push({
+//             label:s.name,
+//             data:s.values
+//         });
+//     });
 
 
-    console.log(
-        "Datasets:",
-        datasets
-    );
+//     console.log(
+//         "Datasets:",
+//         datasets
+//     );
 
-    console.log(
-        "Dates:",
-        data.dates
-    );
+//     console.log(
+//         "Dates:",
+//         data.dates
+//     );
 
-    console.log("DATASETS=", datasets);
+//     console.log("DATASETS=", datasets);
 
-    window.compareChart =
-        new Chart(ctx,{
-            type:"line",
-            data:{
-                labels:data.dates,
-                datasets:datasets
-            }
-        });
+//     window.compareChart =
+//         new Chart(ctx,{
+//             type:"line",
+//             data:{
+//                 labels:data.dates,
+//                 datasets:datasets
+//             }
+//         });
     
-        console.log("CRIANDO CHART");
+//         console.log("CRIANDO CHART");
 
-    }
+//     }
 
+//----------------- 
 
 function createLegend(cmap, nome, layer){
 
@@ -809,6 +829,9 @@ timelineInterval = false
 
 function createPixelChart(values, cmap, produto){
 
+// function createTimelineChart(values, cmap, produto){
+
+
 //let ctx=document.getElementById("pixelChart").getContext("2d")
 
 let ctx =
@@ -913,13 +936,24 @@ let cmap = await loadColormap(produto)
 document.getElementById("pixelChart").style.display = "none";
 document.getElementById("timelineChart").style.display = "block";
 
+// createPixelChart(values,cmap,produto)
+
+// // document.getElementById("chartPanel").style.display="block"
+// document.getElementById(
+// "chartPanel"
+// ).style.display="block";
+
+document.getElementById(
+    "timelinePanel"
+).style.display="block";
+
 createPixelChart(values,cmap,produto)
 
-// document.getElementById("chartPanel").style.display="block"
-document.getElementById(
-"chartPanel"
-).style.display="block";
 }
+
+
+
+
 
 // ---------------------
 function getPixelValue(layer,lat,lng){
@@ -1199,9 +1233,27 @@ function downloadCSV()
 // ---------------------
 
 function closeChart(){
-document.getElementById("chartPanel").style.display="none"
+document.getElementById("comparePanel").style.display="none"
 }
 
+// ---------------------
+
+function closeCompareChart()
+{
+    document.getElementById(
+        "comparePanel"
+    ).style.display="none";
+}
+
+
+// ---------------------
+
+function closeTimelineChart()
+{
+    document.getElementById(
+        "timelinePanel"
+    ).style.display="none";
+}
 
 // ---------------------
 
@@ -1290,37 +1342,72 @@ document.getElementById("pixelValues").innerHTML = txt
 
 // ---------------------
 // DRAG
+// function dragElement(elmnt){
+
+// let pos1=0,pos2=0,pos3=0,pos4=0
+// let header=document.getElementById("chartHeader")
+
+// header.onmousedown=dragMouseDown
+
+// function dragMouseDown(e){
+// e.preventDefault()
+// pos3=e.clientX
+// pos4=e.clientY
+// document.onmouseup=closeDrag
+// document.onmousemove=drag
+// }
+
+// function drag(e){
+// e.preventDefault()
+// pos1=pos3-e.clientX
+// pos2=pos4-e.clientY
+// pos3=e.clientX
+// pos4=e.clientY
+// elmnt.style.top=(elmnt.offsetTop-pos2)+"px"
+// elmnt.style.left=(elmnt.offsetLeft-pos1)+"px"
+// }
+
+// function closeDrag(){
+// document.onmouseup=null
+// document.onmousemove=null
+// }
+// }
 function dragElement(elmnt){
 
-let pos1=0,pos2=0,pos3=0,pos4=0
-let header=document.getElementById("chartHeader")
+    let pos1=0,pos2=0,pos3=0,pos4=0
 
-header.onmousedown=dragMouseDown
+    let header = elmnt.querySelector(".chartHeader");
 
-function dragMouseDown(e){
-e.preventDefault()
-pos3=e.clientX
-pos4=e.clientY
-document.onmouseup=closeDrag
-document.onmousemove=drag
+    if(!header) return; // proteção importante
+
+    header.onmousedown = dragMouseDown;
+
+    function dragMouseDown(e){
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDrag;
+        document.onmousemove = drag;
+    }
+
+    function drag(e){
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDrag(){
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
 }
 
-function drag(e){
-e.preventDefault()
-pos1=pos3-e.clientX
-pos2=pos4-e.clientY
-pos3=e.clientX
-pos4=e.clientY
-elmnt.style.top=(elmnt.offsetTop-pos2)+"px"
-elmnt.style.left=(elmnt.offsetLeft-pos1)+"px"
-}
-
-function closeDrag(){
-document.onmouseup=null
-document.onmousemove=null
-}
-}
-
+//---------------------
 
 function formatDateBR(dateStr)
 {
@@ -1350,20 +1437,30 @@ function markerToChartJS(marker)
     return markers[marker] || "circle";
 }
 
+//---------------------
+
+function openTimelinePanel(){
+    document.getElementById("comparePanel").style.display = "none";
+    document.getElementById("timelinePanel").style.display = "block";
+}
+
+//---------------------
 
 function drawCompareChart(data){
-    
+   
 {
     console.log("ENTROU NO GRÁFICO");
 
     document.getElementById(
-        "chartPanel"
+        "comparePanel"
     ).style.display = "block";
 
     const canvas =
         document.getElementById(
             "pixelChart"
         );
+    
+    const ctx = canvas.getContext("2d");        
 
     if(window.compareChart)
     {
@@ -1475,8 +1572,13 @@ function drawCompareChart(data){
     console.log("ORDEM FINAL:");
     datasets.forEach(d => console.log(d.label));    
 
-    document.getElementById("pixelChart").style.display = "block";
-    document.getElementById("timelineChart").style.display = "none";
+    // document.getElementById("pixelChart").style.display = "block";
+    // document.getElementById("timelineChart").style.display = "none";
+
+    document.getElementById("comparePanel").style.display = "block";
+    document.getElementById("timelinePanel").style.display = "none";
+
+
 
     window.compareChart =
         new Chart(canvas,{
@@ -1600,20 +1702,77 @@ function drawCompareChart(data){
 
 
         });
+
+        openComparePanel();
     }
 }    
 
+function drawTimelineChart(values, cmap, produto){
+
+    const ctx = document.getElementById("timelineChart").getContext("2d");
+
+    if (timelineChart) {
+        timelineChart.destroy();
+    }
+
+    timelineChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: timelineDates,
+            datasets: [{
+                label: produto,
+                data: values,
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    openTimelinePanel();
+}
+
+//----------------------
+
+function openPanel(id){
+    document.getElementById("comparePanel").style.display = "none";
+    document.getElementById("timelinePanel").style.display = "none";
+    document.getElementById(id).style.display = "block";
+}
+
+//----------------------
+
+function closePanel(id){
+    document.getElementById(id).style.display = "none";
+}
+
+//----------------------
+
+// function openComparePanel(){
+//     document.getElementById("timelinePanel").style.display = "none";
+//     document.getElementById("comparePanel").style.display = "block";
+// }
+
 // ---------------------
 // RESIZE OBSERVER
-const resizeObserver =
-new ResizeObserver(() =>
-{
-    let chart =
-        getCurrentChart();
+// const resizeObserver =
+// new ResizeObserver(() =>
+// {
+//     let chart =
+//         getCurrentChart();
 
-    if(chart)
-        chart.resize();
+//     if(chart)
+//         chart.resize();
+// });
+
+const resizeObserver = new ResizeObserver(() => {
+    if (window.compareChart && window.compareChart.resize)
+    if (timelineChart) timelineChart.resize();
 });
+
 
 // const resizeObserver = new ResizeObserver(() => {
 // if(pixelChart){
@@ -1626,6 +1785,11 @@ new ResizeObserver(() =>
 // document.getElementById("ano").onchange=loadDatas
 // document.getElementById("timeSlider").oninput=updateTimeline
 
+
+// openPanel("comparePanel");
+// closePanel("timelinePanel");
+
+
 const produto = document.getElementById("produto");
 const ano = document.getElementById("ano");
 const timeSlider = document.getElementById("timeSlider");
@@ -1636,8 +1800,8 @@ if(timeSlider) timeSlider.oninput = updateTimeline;
 
 
 
-dragElement(document.getElementById("chartPanel"))
-resizeObserver.observe(document.getElementById("chartPanel"))
-
+dragElement(document.getElementById("comparePanel"))
+resizeObserver.observe(document.getElementById("comparePanel"));
+resizeObserver.observe(document.getElementById("timelinePanel"));
 init()
 

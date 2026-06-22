@@ -172,39 +172,38 @@
     <div id="content">
 
         <!-- gráfico suspenso -->
-        <div id="chartPanel" style="display:none;">
+        <!-- PAINEL COMPARAÇÃO -->
+        <div id="comparePanel" class="panelChart" style="display:none;">
 
-            <div id="chartHeader">
-                📊 Série Temporal
+            <div class="chartHeader">
+                📊 CETESB x Sentinel
             </div>
 
-            <!-- gráfico CETESB x Sentinel -->
             <canvas id="pixelChart"></canvas>
 
-            <!-- gráfico timeline do pixel -->
-            <canvas id="timelineChart" style="display:none;"></canvas>
-
             <div style="padding:5px;text-align:center;">
-
-                <button onclick="downloadChartPNG()">
-                    PNG
-                </button>
-
-                <button onclick="downloadChartJPG()">
-                    JPG
-                </button>
-
-                <button onclick="downloadCSV()">
-                    CSV
-                </button>
-
-                <button onclick="closeChart()">
-                    Fechar
-                </button>
-
+                <button onclick="downloadChartPNG()">PNG</button>
+                <button onclick="downloadChartJPG()">JPG</button>
+                <button onclick="downloadCSV()">CSV</button>
+                <button onclick="closeCompareChart()">Fechar</button>
             </div>
+
         </div>
 
+        <!-- PAINEL TIMELINE -->
+        <div id="timelinePanel" class="panelChart" style="display:none;">
+
+            <div class="chartHeader">
+                📈 Série Temporal Pixel
+            </div>
+
+            <canvas id="timelineChart"></canvas>
+
+            <div style="padding:5px;text-align:center;">
+                <button onclick="closeTimelineChart()">Fechar</button>
+            </div>
+
+        </div>
         <!-- mapa -->
         <div id="map"></div>
 
