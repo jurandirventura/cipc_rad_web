@@ -200,10 +200,27 @@
             <canvas id="timelineChart"></canvas>
 
             <div style="padding:5px;text-align:center;">
-                <button onclick="closeTimelineChart()">Fechar</button>
+
+                <button onclick="downloadChartPNG()">
+                    PNG
+                </button>
+
+                <button onclick="downloadChartJPG()">
+                    JPG
+                </button>
+
+                <button onclick="downloadCSV()">
+                    CSV
+                </button>
+
+                <button onclick="closeTimelineChart()">
+                    Fechar
+                </button>
+
             </div>
 
         </div>
+
         <!-- mapa -->
         <div id="map"></div>
 
