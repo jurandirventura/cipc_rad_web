@@ -182,9 +182,13 @@
             <canvas id="pixelChart"></canvas>
 
             <div style="padding:5px;text-align:center;">
-                <button onclick="downloadChartPNG()">PNG</button>
-                <button onclick="downloadChartJPG()">JPG</button>
-                <button onclick="downloadCSV()">CSV</button>
+
+                <!--Compare:-->
+
+                <button onclick="downloadChartPNG('compare')">PNG</button>
+                <button onclick="downloadChartJPG('compare')">JPG</button>
+                <button onclick="downloadCSV('compare')">CSV</button>
+
                 <button onclick="closeCompareChart()">Fechar</button>
             </div>
 
@@ -201,17 +205,9 @@
 
             <div style="padding:5px;text-align:center;">
 
-                <button onclick="downloadChartPNG()">
-                    PNG
-                </button>
-
-                <button onclick="downloadChartJPG()">
-                    JPG
-                </button>
-
-                <button onclick="downloadCSV()">
-                    CSV
-                </button>
+                <button onclick="downloadChartPNG('timeline')">PNG</button>
+                <button onclick="downloadChartJPG('timeline')">JPG</button>
+                <button onclick="downloadCSV('timeline')">CSV</button>
 
                 <button onclick="closeTimelineChart()">
                     Fechar

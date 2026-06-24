@@ -878,111 +878,420 @@ return r.values[0][row][col]
 
 //----------------------
 
-function getCurrentChartCanvas()
-{
-    if(window.activeChart === "compare")
-        return document.getElementById("pixelChart");
+// function getCurrentChartCanvas()
+// {
+//     if(window.activeChart === "compare")
+//         return document.getElementById("pixelChart");
 
-    if(window.activeChart === "timeline")
-        return document.getElementById("timelineChart");
+//     if(window.activeChart === "timeline")
+//         return document.getElementById("timelineChart");
 
-    return null;
-}
+//     return null;
+// }
 
 
 //----------------------
 
-function getCurrentChart()
-{
-    if(window.activeChart === "compare")
-        return window.compareChart;
+// function getCurrentChart()
+// {
+//     if(window.activeChart === "compare")
+//         return window.compareChart;
 
-    if(window.activeChart === "timeline")
-        return window.timelineChart;
+//     if(window.activeChart === "timeline")
+//         return window.timelineChart;
 
-    return null;
-}
+//     return null;
+// }
 
 //-----------------------
 
-function getVisibleChart()
-{
-    const compareVisible =
-        document.getElementById("comparePanel")
-        .style.display !== "none";
+// function getVisibleChart()
+// {
+//     const compareVisible =
+//         document.getElementById("comparePanel")
+//         .style.display !== "none";
 
-    const timelineVisible =
-        document.getElementById("timelinePanel")
-        .style.display !== "none";
+//     const timelineVisible =
+//         document.getElementById("timelinePanel")
+//         .style.display !== "none";
 
-    if(compareVisible && window.compareChart)
-        return window.compareChart;
+//     if(compareVisible && window.compareChart)
+//         return window.compareChart;
 
-    if(timelineVisible && timelineChart)
-        return timelineChart;
+//     if(timelineVisible && timelineChart)
+//         return timelineChart;
 
-    return null;
-}
+//     return null;
+// }
 
 //----------------------
 
-function downloadChartPNG()
+function sanitizeCoord(v)
 {
-    // let chart = getCurrentChart();
-    // let chart = getVisibleChart();
-    let chart = getCurrentChart();
+    let sinal = v < 0 ? "n" : "";
+
+    return sinal +
+        Math.abs(v)
+        .toFixed(2)
+        .replace(".", "p");
+}
+
+//---------------------
+
+function getCompareFilename(ext)
+{
+    let st =
+        selectedStation || {};
+
+    let codigo =
+        st.codigo || "sem_codigo";
+
+    let nome =
+        (st.nome || "sem_nome")
+        .replace(/\s+/g, "_")
+        .replace(/[^\w]/g, "");
+
+    let start =
+        (document.getElementById("startDate").value || "")
+        .replaceAll("-", "");
+
+    let end =
+        (document.getElementById("endDate").value || "")
+        .replaceAll("-", "");
+
+    return `cetesb_${codigo}_${nome}_Sentinel5P_${start}_${end}.${ext}`;
+}
+
+//---------------------
+
+// function getTimelineFilename(ext)
+// {
+//     let produto =
+//         document.getElementById("produto").value || "produto";
+
+//     let lat =
+//         coordToName(clickLat);
+
+//     let lon =
+//         coordToName(clickLon);
+
+//     let start =
+//         (document.getElementById("startDate").value || "")
+//         .replaceAll("-", "");
+
+//     let end =
+//         (document.getElementById("endDate").value || "")
+//         .replaceAll("-", "");
+
+//     return `timeseries_${produto}_${lat}_${lon}_${start}_${end}.${ext}`;
+// }
+
+function getTimelineFilename(ext)
+{
+    let produto =
+        document.getElementById("produto").value || "produto";
+
+    let lat =
+        sanitizeCoord(clickLat);
+
+    let lon =
+        sanitizeCoord(clickLon);
+
+    let start =
+        (document.getElementById("startDate").value || "")
+        .replaceAll("-", "");
+
+    let end =
+        (document.getElementById("endDate").value || "")
+        .replaceAll("-", "");
+
+    return `timeseries_${produto}_${lat}_${lon}_${start}_${end}.${ext}`;
+}
+
+//---------------------
+
+function getExportFilename(ext)
+{
+    //
+    // COMPARE PANEL
+    //
+    if(window.activeChartType === "compare")
+    {
+        if(!window.lastCompareData)
+            return "comparacao." + ext;
+
+        let codigo =
+            window.lastCompareData.station.codigo;
+
+        let nome =
+            window.lastCompareData.station.nome
+            .replaceAll(" ", "_")
+            .replaceAll("/", "_");
+
+        let ini =
+            window.lastCompareData.start
+            .replaceAll("-", "");
+
+        let fim =
+            window.lastCompareData.end
+            .replaceAll("-", "");
+
+        return
+            `cetesb_${codigo}_${nome}_Sentinel5P_${ini}_${fim}.${ext}`;
+    }
+
+    //
+    // TIMELINE
+    //
+    let produto =
+        document.getElementById("produto").value;
+
+    let ini =
+        document.getElementById("startDate")
+        .value
+        .replaceAll("-", "");
+
+    let fim =
+        document.getElementById("endDate")
+        .value
+        .replaceAll("-", "");
+
+    let lat =
+        sanitizeCoord(clickLat);
+
+    let lon =
+        sanitizeCoord(clickLon);
+
+    return
+        `timeseries_${produto}_${lat}_${lon}_${ini}_${fim}.${ext}`;
+}
+
+//--------------------
+
+// function downloadChartPNG(tipo)
+// {
+//     let chart =
+//         tipo === "compare"
+//         ? window.compareChart
+//         : window.timelineChart;
+
+//     if(!chart)
+//     {
+//         alert("Nenhum gráfico disponível");
+//         return;
+//     }
+
+//     let a =
+//         document.createElement("a");
+
+//     a.href =
+//         chart.toBase64Image();
+
+//     a.download =
+//         tipo + ".png";
+
+//     a.click();
+// }
+
+
+// function downloadChartPNG()
+// {
+//     let chart = getCurrentChart();
+
+//     if(!chart)
+//     {
+//         alert("Nenhum gráfico disponível");
+//         return;
+//     }
+
+//     let url = chart.toBase64Image();
+
+//     let a = document.createElement("a");
+
+//     a.href = url;
+
+//     a.download =
+//         getExportFilename("png");
+
+//     a.click();
+// }
+
+function downloadChartPNG(tipo)
+{
+    let chart =
+        tipo === "compare"
+        ? window.compareChart
+        : window.timelineChart;
+
     if(!chart){
         alert("Nenhum gráfico disponível");
         return;
     }
 
-    let url = chart.toBase64Image();
+    let nome =
+        tipo === "compare"
+        ? getCompareFilename("png")
+        : getTimelineFilename("png");
 
     let a = document.createElement("a");
-    a.href = url;
-    a.download = "grafico.png";
+    a.href = chart.toBase64Image();
+    a.download = nome;
     a.click();
 }
 
 // ---------------------
 
-function downloadChartJPG()
+// function downloadChartJPG(tipo)
+// {
+//     let canvas =
+//         tipo === "compare"
+//         ? document.getElementById("pixelChart")
+//         : document.getElementById("timelineChart");
+
+//     if(!canvas)
+//         return;
+
+//     let tempCanvas =
+//         document.createElement("canvas");
+
+//     tempCanvas.width = canvas.width;
+//     tempCanvas.height = canvas.height;
+
+//     let ctx =
+//         tempCanvas.getContext("2d");
+
+//     ctx.fillStyle = "#FFFFFF";
+
+//     ctx.fillRect(
+//         0,
+//         0,
+//         tempCanvas.width,
+//         tempCanvas.height
+//     );
+
+//     ctx.drawImage(canvas,0,0);
+
+//     let a =
+//         document.createElement("a");
+
+//     a.href =
+//         tempCanvas.toDataURL(
+//             "image/jpeg",
+//             0.95
+//         );
+
+//     a.download =
+//         tipo + ".jpg";
+
+//     a.click();
+// }
+
+// function downloadChartJPG()
+// {
+//     let canvas =
+//         getCurrentChartCanvas();
+
+//     if(!canvas)
+//     {
+//         alert("Nenhum gráfico disponível");
+//         return;
+//     }
+
+//     let tempCanvas =
+//         document.createElement("canvas");
+
+//     tempCanvas.width =
+//         canvas.width;
+
+//     tempCanvas.height =
+//         canvas.height;
+
+//     let ctx =
+//         tempCanvas.getContext("2d");
+
+//     ctx.fillStyle = "#FFFFFF";
+
+//     ctx.fillRect(
+//         0,
+//         0,
+//         tempCanvas.width,
+//         tempCanvas.height
+//     );
+
+//     ctx.drawImage(canvas,0,0);
+
+//     let a =
+//         document.createElement("a");
+
+//     a.href =
+//         tempCanvas.toDataURL(
+//             "image/jpeg",
+//             0.95
+//         );
+
+//     a.download =
+//         getExportFilename("jpg");
+
+//     a.click();
+// }
+
+function downloadChartJPG(tipo)
 {
-    let canvas = getCurrentChartCanvas();
-    if (!canvas) return;
+    let canvas =
+        tipo === "compare"
+        ? document.getElementById("pixelChart")
+        : document.getElementById("timelineChart");
 
-    let tempCanvas = document.createElement("canvas");
+    if(!canvas)
+    {
+        alert("Canvas não encontrado");
+        return;
+    }
 
-    tempCanvas.width  = canvas.width;
-    tempCanvas.height = canvas.height;
+    let nome =
+        tipo === "compare"
+        ? getCompareFilename("jpg")
+        : getTimelineFilename("jpg");
 
-    const tempCtx = tempCanvas.getContext("2d");
+    let tempCanvas =
+        document.createElement("canvas");
 
-    tempCtx.fillStyle = "#FFFFFF";
-    tempCtx.fillRect(
+    tempCanvas.width =
+        canvas.width;
+
+    tempCanvas.height =
+        canvas.height;
+
+    let ctx =
+        tempCanvas.getContext("2d");
+
+    ctx.fillStyle = "#FFFFFF";
+
+    ctx.fillRect(
         0,
         0,
         tempCanvas.width,
         tempCanvas.height
     );
 
-    tempCtx.drawImage(canvas,0,0);
+    ctx.drawImage(canvas,0,0);
 
-    let url = tempCanvas.toDataURL(
-        "image/jpeg",
-        0.95
-    );    
+    let url =
+        tempCanvas.toDataURL(
+            "image/jpeg",
+            0.95
+        );
 
     let a =
         document.createElement("a");
 
     a.href = url;
 
-    a.download =
-        "grafico.jpg";
+    a.download = nome;
 
     a.click();
 }
+
 
 // ---------------------
 
@@ -1001,21 +1310,102 @@ map.invalidateSize()
 
 // ---------------------
 
-function downloadCSV()
-{
-    let chart = getCurrentChart();
+// function downloadCSV(tipo)
+// {
+//     let chart =
+//         tipo === "compare"
+//         ? window.compareChart
+//         : window.timelineChart;
 
-    if(!chart){
+//     if(!chart)
+//     {
+//         alert("Nenhum gráfico disponível");
+//         return;
+//     }
+
+//     let csv = "Data";
+
+//     chart.data.datasets.forEach(ds =>
+//     {
+//         csv += ";" + ds.label;
+//     });
+
+//     csv += "\n";
+
+//     chart.data.labels.forEach((data, idx)=>
+//     {
+//         csv += data;
+
+//         chart.data.datasets.forEach(ds =>
+//         {
+//             csv += ";" +
+//                 (ds.data[idx] ?? "");
+//         });
+
+//         csv += "\n";
+//     });
+
+//     let blob = new Blob(
+//         [csv],
+//         {type:"text/csv;charset=utf-8;"}
+//     );
+
+//     let url =
+//         URL.createObjectURL(blob);
+
+//     let a =
+//         document.createElement("a");
+
+//     a.href = url;
+
+//     // a.download =
+//     //     tipo === "compare"
+//     //     ? "comparacao.csv"
+//     //     : "timeline.csv";
+
+//     a.download =
+//     getExportFilename("csv");
+
+//     a.click();
+
+//     URL.revokeObjectURL(url);
+// }
+
+
+function downloadCSV(tipo)
+{
+    let chart =
+        tipo === "compare"
+        ? window.compareChart
+        : window.timelineChart;
+
+    if(!chart)
+    {
         alert("Nenhum gráfico disponível");
         return;
     }
 
     let csv = "";
 
-    if(window.lastCompareData)
+    if(tipo === "compare" &&
+       window.lastCompareData)
     {
-        csv += `Estação;${window.lastCompareData.station.codigo} - ${window.lastCompareData.station.nome}\n`;
-        csv += `Período;${window.lastCompareData.start} a ${window.lastCompareData.end}\n\n`;
+        csv +=
+            `Estacao;${window.lastCompareData.station.codigo} - ${window.lastCompareData.station.nome}\n`;
+
+        csv +=
+            `Periodo;${window.lastCompareData.start} a ${window.lastCompareData.end}\n\n`;
+    }
+
+    if(tipo === "timeline")
+    {
+        csv +=
+            `Latitude;${clickLat}\n`;
+
+        csv +=
+            `Longitude;${clickLon}\n`;
+
+        csv += "\n";
     }
 
     csv += "Data";
@@ -1045,7 +1435,10 @@ function downloadCSV()
     let blob =
         new Blob(
             [csv],
-            {type:"text/csv;charset=utf-8;"}
+            {
+                type:
+                "text/csv;charset=utf-8;"
+            }
         );
 
     let url =
@@ -1056,15 +1449,10 @@ function downloadCSV()
 
     a.href = url;
 
-    // a.download =
-    //     "comparacao_cetesb_satelite.csv";
-
-    let nomeArquivo =
-        document.getElementById("timelinePanel").style.display !== "none"
-        ? "timeline.csv"
-        : "comparacao_cetesb_satelite.csv";
-
-    a.download = nomeArquivo;        
+    a.download =
+        tipo === "compare"
+        ? getCompareFilename("csv")
+        : getTimelineFilename("csv");
 
     a.click();
 
