@@ -168,12 +168,6 @@ async function compareSeries() {
 
     console.log("URL=", url);
 
-    // let resp = await fetch(url);
-
-    // let data = await resp.json();
-
-    // console.log("RETORNO=", data);
-
     let resp = await fetch(url);
 
     let data = await resp.json();
@@ -878,54 +872,6 @@ return r.values[0][row][col]
 
 //----------------------
 
-// function getCurrentChartCanvas()
-// {
-//     if(window.activeChart === "compare")
-//         return document.getElementById("pixelChart");
-
-//     if(window.activeChart === "timeline")
-//         return document.getElementById("timelineChart");
-
-//     return null;
-// }
-
-
-//----------------------
-
-// function getCurrentChart()
-// {
-//     if(window.activeChart === "compare")
-//         return window.compareChart;
-
-//     if(window.activeChart === "timeline")
-//         return window.timelineChart;
-
-//     return null;
-// }
-
-//-----------------------
-
-// function getVisibleChart()
-// {
-//     const compareVisible =
-//         document.getElementById("comparePanel")
-//         .style.display !== "none";
-
-//     const timelineVisible =
-//         document.getElementById("timelinePanel")
-//         .style.display !== "none";
-
-//     if(compareVisible && window.compareChart)
-//         return window.compareChart;
-
-//     if(timelineVisible && timelineChart)
-//         return timelineChart;
-
-//     return null;
-// }
-
-//----------------------
-
 function sanitizeCoord(v)
 {
     let sinal = v < 0 ? "n" : "";
@@ -963,28 +909,6 @@ function getCompareFilename(ext)
 }
 
 //---------------------
-
-// function getTimelineFilename(ext)
-// {
-//     let produto =
-//         document.getElementById("produto").value || "produto";
-
-//     let lat =
-//         coordToName(clickLat);
-
-//     let lon =
-//         coordToName(clickLon);
-
-//     let start =
-//         (document.getElementById("startDate").value || "")
-//         .replaceAll("-", "");
-
-//     let end =
-//         (document.getElementById("endDate").value || "")
-//         .replaceAll("-", "");
-
-//     return `timeseries_${produto}_${lat}_${lon}_${start}_${end}.${ext}`;
-// }
 
 function getTimelineFilename(ext)
 {
@@ -1068,54 +992,6 @@ function getExportFilename(ext)
 
 //--------------------
 
-// function downloadChartPNG(tipo)
-// {
-//     let chart =
-//         tipo === "compare"
-//         ? window.compareChart
-//         : window.timelineChart;
-
-//     if(!chart)
-//     {
-//         alert("Nenhum gráfico disponível");
-//         return;
-//     }
-
-//     let a =
-//         document.createElement("a");
-
-//     a.href =
-//         chart.toBase64Image();
-
-//     a.download =
-//         tipo + ".png";
-
-//     a.click();
-// }
-
-
-// function downloadChartPNG()
-// {
-//     let chart = getCurrentChart();
-
-//     if(!chart)
-//     {
-//         alert("Nenhum gráfico disponível");
-//         return;
-//     }
-
-//     let url = chart.toBase64Image();
-
-//     let a = document.createElement("a");
-
-//     a.href = url;
-
-//     a.download =
-//         getExportFilename("png");
-
-//     a.click();
-// }
-
 function downloadChartPNG(tipo)
 {
     let chart =
@@ -1140,100 +1016,6 @@ function downloadChartPNG(tipo)
 }
 
 // ---------------------
-
-// function downloadChartJPG(tipo)
-// {
-//     let canvas =
-//         tipo === "compare"
-//         ? document.getElementById("pixelChart")
-//         : document.getElementById("timelineChart");
-
-//     if(!canvas)
-//         return;
-
-//     let tempCanvas =
-//         document.createElement("canvas");
-
-//     tempCanvas.width = canvas.width;
-//     tempCanvas.height = canvas.height;
-
-//     let ctx =
-//         tempCanvas.getContext("2d");
-
-//     ctx.fillStyle = "#FFFFFF";
-
-//     ctx.fillRect(
-//         0,
-//         0,
-//         tempCanvas.width,
-//         tempCanvas.height
-//     );
-
-//     ctx.drawImage(canvas,0,0);
-
-//     let a =
-//         document.createElement("a");
-
-//     a.href =
-//         tempCanvas.toDataURL(
-//             "image/jpeg",
-//             0.95
-//         );
-
-//     a.download =
-//         tipo + ".jpg";
-
-//     a.click();
-// }
-
-// function downloadChartJPG()
-// {
-//     let canvas =
-//         getCurrentChartCanvas();
-
-//     if(!canvas)
-//     {
-//         alert("Nenhum gráfico disponível");
-//         return;
-//     }
-
-//     let tempCanvas =
-//         document.createElement("canvas");
-
-//     tempCanvas.width =
-//         canvas.width;
-
-//     tempCanvas.height =
-//         canvas.height;
-
-//     let ctx =
-//         tempCanvas.getContext("2d");
-
-//     ctx.fillStyle = "#FFFFFF";
-
-//     ctx.fillRect(
-//         0,
-//         0,
-//         tempCanvas.width,
-//         tempCanvas.height
-//     );
-
-//     ctx.drawImage(canvas,0,0);
-
-//     let a =
-//         document.createElement("a");
-
-//     a.href =
-//         tempCanvas.toDataURL(
-//             "image/jpeg",
-//             0.95
-//         );
-
-//     a.download =
-//         getExportFilename("jpg");
-
-//     a.click();
-// }
 
 function downloadChartJPG(tipo)
 {
@@ -1309,68 +1091,6 @@ map.invalidateSize()
 }
 
 // ---------------------
-
-// function downloadCSV(tipo)
-// {
-//     let chart =
-//         tipo === "compare"
-//         ? window.compareChart
-//         : window.timelineChart;
-
-//     if(!chart)
-//     {
-//         alert("Nenhum gráfico disponível");
-//         return;
-//     }
-
-//     let csv = "Data";
-
-//     chart.data.datasets.forEach(ds =>
-//     {
-//         csv += ";" + ds.label;
-//     });
-
-//     csv += "\n";
-
-//     chart.data.labels.forEach((data, idx)=>
-//     {
-//         csv += data;
-
-//         chart.data.datasets.forEach(ds =>
-//         {
-//             csv += ";" +
-//                 (ds.data[idx] ?? "");
-//         });
-
-//         csv += "\n";
-//     });
-
-//     let blob = new Blob(
-//         [csv],
-//         {type:"text/csv;charset=utf-8;"}
-//     );
-
-//     let url =
-//         URL.createObjectURL(blob);
-
-//     let a =
-//         document.createElement("a");
-
-//     a.href = url;
-
-//     // a.download =
-//     //     tipo === "compare"
-//     //     ? "comparacao.csv"
-//     //     : "timeline.csv";
-
-//     a.download =
-//     getExportFilename("csv");
-
-//     a.click();
-
-//     URL.revokeObjectURL(url);
-// }
-
 
 function downloadCSV(tipo)
 {
@@ -1741,13 +1461,7 @@ function drawCompareChart(data){
 
     console.log("ORDEM FINAL:");
     datasets.forEach(d => console.log(d.label));    
-
-    // document.getElementById("pixelChart").style.display = "block";
-    // document.getElementById("timelineChart").style.display = "none";
-
-    // document.getElementById("comparePanel").style.display = "block";
-    // document.getElementById("timelinePanel").style.display = "block";
-
+ 
     document.getElementById("comparePanel").style.display = "block";
 
 
@@ -1834,14 +1548,6 @@ function drawTimelineChart(values, cmap, produto){
 
     const ctx = document.getElementById("timelineChart").getContext("2d");
 
-    // window.timelineChart = null;
-    // window.compareChart = null;
-
-
-    // if (timelineChart) {
-    //     timelineChart.destroy();
-    // }
-
     if (window.timelineChart)
     {
         window.timelineChart.destroy();
@@ -1883,11 +1589,6 @@ function closePanel(id){
 }
 
 //----------------------
-
-// const resizeObserver = new ResizeObserver(() => {
-//     if (window.compareChart && window.compareChart.resize)
-//     if (timelineChart) timelineChart.resize();
-// });
 
 const resizeObserver = new ResizeObserver(() => {
 
