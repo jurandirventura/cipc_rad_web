@@ -1,22 +1,87 @@
 // atualizando 10jun2026 - Inclui Cetesb
-var map = L.map('map',{
-center:[-15,-55],
-zoom:4,
-worldCopyJump:false,
-maxBounds:[[-85,-180],[85,180]],
-maxBoundsViscosity:1.0
-})
+// var map = L.map('map',{
+// center:[-15,-55],
+// zoom:4,
+// worldCopyJump:false,
+// maxBounds:[[-85,-180],[85,180]],
+// maxBoundsViscosity:1.0
+// })
 
-L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{noWrap:true}
-).addTo(map)
+// L.tileLayer(
+// 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+// {noWrap:true}
+// ).addTo(map)
+
+var map = L.map("map",{
+    center:[-15,-55],
+    zoom:4,
+    worldCopyJump:false,
+    maxBounds:[[-85,-180],[85,180]],
+    maxBoundsViscosity:1.0
+});
+
+//
+// BASEMAPS
+//
+
+const osm = L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+        noWrap:true,
+        attribution:"© OpenStreetMap"
+    }
+);
+
+const googleSat = L.tileLayer(
+    "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+    {
+        noWrap:true,
+        attribution:"Google"
+    }
+);
+
+const esri = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    {
+        attribution:"Esri"
+    }
+);
+
+const cartoDark = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    {
+        attribution:"Carto"
+    }
+);
+
+const cartoLight = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    {
+        attribution:"Carto"
+    }
+);
+
+// mapa inicial
+osm.addTo(map);
+
 
 
 window.activeChart = null;
 
 
 var layers=[]
+
+var municipiosLayer = L.layerGroup();
+
+var estadosLayer = L.layerGroup();
+
+var riosLayer = L.layerGroup();
+
+var brasilLayer = L.layerGroup();
+
+var gradeLayer = L.layerGroup();
+
+
 
 // timeline
 var timelineDates=[]
@@ -45,6 +110,134 @@ var clickMarker = null
 // CETESB
 var cetesbLayer = L.layerGroup().addTo(map)
 var selectedStation = null
+
+// Mapa
+const baseMaps = {
+
+    "OpenStreetMap": osm,
+
+    "Google Satélite": googleSat,
+
+    "ESRI World Imagery": esri,
+
+    "Carto Dark": cartoDark,
+
+    "Carto Light": cartoLight
+
+};
+
+const overlayMaps = {
+
+    "Municípios": municipiosLayer,
+
+    "Estados": estadosLayer,
+
+    "Rios": riosLayer,
+
+    "Estações CETESB": cetesbLayer,
+
+    "Limites Brasil": brasilLayer,
+
+    "Grade Lat/Lon": gradeLayer
+
+};
+
+var layerControl =
+    L.control.layers(
+        baseMaps,
+        overlayMaps,
+        {
+            collapsed:true
+        }
+    ).addTo(map);
+
+
+// CAMADAS DE OPÇÃO DO MAPA: ESTADOS, MUNICÍPIOS ...
+fetch("/static/geojson/municipios.geojson")
+.then(r => r.json())
+.then(g => {
+
+    L.geoJSON(g,{
+        style:{
+            color:"#666",
+            weight:0.5,
+            fill:false
+        }
+    }).addTo(municipiosLayer);
+
+});
+
+static/geojson/estados.geojson
+
+fetch("/static/geojson/estados.geojson")
+.then(r => r.json())
+.then(g => {
+
+    L.geoJSON(g,{
+        style:{
+            color:"#000",
+            weight:1,
+            fill:false
+        }
+    }).addTo(estadosLayer);
+
+});
+
+fetch("/static/geojson/brasil.geojson")
+.then(r => r.json())
+.then(g => {
+
+    L.geoJSON(g,{
+        style:{
+            color:"red",
+            weight:2,
+            fill:false
+        }
+    }).addTo(brasilLayer);
+
+});
+
+fetch("/static/geojson/rios.geojson")
+.then(r => r.json())
+.then(g => {
+
+    L.geoJSON(g,{
+        style:{
+            color:"blue",
+            weight:1
+        }
+    }).addTo(riosLayer);
+
+});
+
+for(let lat=-60; lat<=15; lat+=5){
+
+    L.polyline(
+        [[lat,-90],[lat,-20]],
+        {
+            color:"#999",
+            weight:0.5,
+            opacity:0.6
+        }
+    ).addTo(gradeLayer);
+
+}
+
+for(let lon=-90; lon<=-20; lon+=5){
+
+    L.polyline(
+        [[-60,lon],[15,lon]],
+        {
+            color:"#999",
+            weight:0.5,
+            opacity:0.6
+        }
+    ).addTo(gradeLayer);
+
+}
+
+
+
 
 // Váriável global para o gráfico de comparação
 let compareChart = null;
