@@ -168,10 +168,8 @@ fetch("/static/geojson/geojs-100-mun.json")
 
 });
 
-static/geojson/estados.geojson
-
 // fetch("/static/geojson/estados.geojson")
-fetch("/static/geojson/brazil-states.geojson")
+fetch("/static/geojson/estados.geojson")
 .then(r => r.json())
 .then(g => {
 
@@ -185,19 +183,20 @@ fetch("/static/geojson/brazil-states.geojson")
 
 });
 
-// fetch("/static/geojson/brasil.geojson")
-// .then(r => r.json())
-// .then(g => {
+// fetch("/static/geojson/limites_brasil.geojson")
+fetch("/static/geojson/geoBoundaries-BRA-ADM2_simplified.geojson")
+.then(r => r.json())
+.then(g => {
 
-//     L.geoJSON(g,{
-//         style:{
-//             color:"red",
-//             weight:2,
-//             fill:false
-//         }
-//     }).addTo(brasilLayer);
+    L.geoJSON(g,{
+        style:{
+            color:"red",
+            weight:2,
+            fill:false
+        }
+    }).addTo(brasilLayer);
 
-// });
+});
 
 // fetch("/static/geojson/rios.geojson")
 // .then(r => r.json())
