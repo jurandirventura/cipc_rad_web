@@ -153,7 +153,8 @@ var layerControl =
 
 
 // CAMADAS DE OPÇÃO DO MAPA: ESTADOS, MUNICÍPIOS ...
-fetch("/static/geojson/municipios.geojson")
+// fetch("/static/geojson/municipios.geojson")
+fetch("/static/geojson/geojs-100-mun.json")
 .then(r => r.json())
 .then(g => {
 
@@ -169,7 +170,8 @@ fetch("/static/geojson/municipios.geojson")
 
 static/geojson/estados.geojson
 
-fetch("/static/geojson/estados.geojson")
+// fetch("/static/geojson/estados.geojson")
+fetch("/static/geojson/brazil-states.geojson")
 .then(r => r.json())
 .then(g => {
 
@@ -183,32 +185,32 @@ fetch("/static/geojson/estados.geojson")
 
 });
 
-fetch("/static/geojson/brasil.geojson")
-.then(r => r.json())
-.then(g => {
+// fetch("/static/geojson/brasil.geojson")
+// .then(r => r.json())
+// .then(g => {
 
-    L.geoJSON(g,{
-        style:{
-            color:"red",
-            weight:2,
-            fill:false
-        }
-    }).addTo(brasilLayer);
+//     L.geoJSON(g,{
+//         style:{
+//             color:"red",
+//             weight:2,
+//             fill:false
+//         }
+//     }).addTo(brasilLayer);
 
-});
+// });
 
-fetch("/static/geojson/rios.geojson")
-.then(r => r.json())
-.then(g => {
+// fetch("/static/geojson/rios.geojson")
+// .then(r => r.json())
+// .then(g => {
 
-    L.geoJSON(g,{
-        style:{
-            color:"blue",
-            weight:1
-        }
-    }).addTo(riosLayer);
+//     L.geoJSON(g,{
+//         style:{
+//             color:"blue",
+//             weight:1
+//         }
+//     }).addTo(riosLayer);
 
-});
+// });
 
 for(let lat=-60; lat<=15; lat+=5){
 
