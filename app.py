@@ -195,6 +195,8 @@ def compare_series():
             "sat"
         )
 
+        goes = request.args.getlist("goes")
+
         cetesb_gases = request.args.getlist("cetesb")
         sat_gases = request.args.getlist("sat")
 
@@ -204,6 +206,7 @@ def compare_series():
         print("codigo=", codigo)
         print("cetesb=", cetesb_gases)
         print("sat=", sat_gases)
+        print("GOES:", goes)
 
         data_inicio = pd.to_datetime(start)
         data_fim = pd.to_datetime(end)
@@ -332,7 +335,7 @@ def compare_series():
             })
 
         # -----------------------------
-        # SATÉLITE 
+        # SATÉLITE SENTINEL-5P
         # -----------------------------
 
         datas_unicas = pd.to_datetime(
@@ -437,6 +440,76 @@ def compare_series():
             "series": series
         })
 
+        # -----------------------------
+        # SATÉLITE GOES-16 AOD
+        # -----------------------------
+
+        for pol in goes:
+
+            if pol not in GOES_CONFIG:
+
+                continue
+
+            cfg = GOES_CONFIG[produto]
+
+            goes_dates, goes_values = get_goes_series(
+
+                goes_index=cfg["index"],
+
+                datas_unicas=datas_unicas,
+
+                lat_station=lat_station,
+
+                lon_station=lon_station,
+
+                scale=cfg.get("scale", 1.0)
+
+            )
+
+            print("\n======================")
+            print("PRODUTO GOES:", produto)
+            print("INDEX DIR:", cfg["index"])
+            print("DATAS:", goes_dates)
+            print("VALORES:", goes_values)
+
+            if goes_values:
+
+                print("MIN:", min(goes_values))
+                print("MAX:", max(goes_values))
+
+            print("======================")
+
+            goes_map = {}
+
+            for d, v in zip(goes_dates, goes_values):
+
+                goes_map[
+                    pd.Timestamp(d).strftime("%Y-%m-%d")
+                ] = float(v)
+
+            valores = []
+
+            for d in dates:
+
+                valores.append(
+                    goes_map.get(d, None)
+                )
+
+            series.append({
+
+                "name": cfg["label"],
+
+                "values": valores,
+
+                "color": cfg["color"],
+
+                "marker": cfg["marker"],
+
+                "unit": cfg.get("unit", ""),
+
+                "satellite": True
+            })
+
 
     except Exception as e:
 
@@ -446,6 +519,7 @@ def compare_series():
         return jsonify({
             "erro": str(e)
         }), 500
+
 
 
 # Verifica as estações que tem arquivos de dados csv
@@ -537,6 +611,31 @@ CETESB_CONFIG = {
     }
 }
 
+GOES_INDEX = {
+
+    "AOD": build_goes_index(
+        "/data/geotiff/goes_aod"
+    )
+
+}
+
+GOES_CONFIG = {
+
+    "AOD": {
+
+        "index": GOES_INDEX["AOD"],
+
+        "label": "GOES-16 AOD",
+
+        "color": "#8B4513",
+
+        "marker": "triangle",
+
+        "unit": "AOD",
+
+        "scale": 1.0
+    }
+}
 
 if __name__ == "__main__":
     #app.run(debug=True)

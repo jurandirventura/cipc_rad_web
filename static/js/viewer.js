@@ -340,6 +340,17 @@ async function compareSeries() {
 
     console.log("sat=", sat);
 
+    let goes=[];
+
+    document
+        .querySelectorAll(".goesGas:checked")
+        .forEach(cb => goes.push(cb.value));
+
+    console.log("goes=", goes);
+
+
+
+    
     let start =
       document.getElementById("startDate").value;
 
@@ -355,6 +366,10 @@ async function compareSeries() {
 
     sat.forEach(g =>
         url += `&sat=${g}`
+    );
+
+    goes.forEach(g =>
+        url += `&goes=${g}`
     );
 
     url += `&start=${start}`;
@@ -1635,7 +1650,19 @@ function drawCompareChart(data){
             yAxisID:
                 s.name.includes("CH4")
                 ? "y2"
-                : "y"
+                : "y";
+
+
+            label:"GOES AOD",
+
+            data:data.goes.AOD,
+
+            borderColor:"#ff7f00",
+
+            backgroundColor:"#ff7f00",
+
+            fill:false
+
         });
     });
 
