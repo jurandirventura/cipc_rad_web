@@ -1650,18 +1650,7 @@ function drawCompareChart(data){
             yAxisID:
                 s.name.includes("CH4")
                 ? "y2"
-                : "y";
-
-
-            label:"GOES AOD",
-
-            data:data.goes.AOD,
-
-            borderColor:"#ff7f00",
-
-            backgroundColor:"#ff7f00",
-
-            fill:false
+                : "y",
 
         });
     });

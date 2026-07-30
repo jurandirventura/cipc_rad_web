@@ -392,13 +392,6 @@ def compare_series():
                     sat_map.get(d, None)
                 )
 
-            # series.append({
-
-            #     "name": f"S5P {pol}",
-
-            #     "values": valores
-            # })       
-
             series.append({
 
                 "name": cfg["label"],
@@ -429,32 +422,21 @@ def compare_series():
         print("nome   =", nome_estacao)
         print("================================")        
 
-        return jsonify({
-            "station": {
-                "codigo": codigo,
-                "nome": nome_estacao
-            },
-            "start": start,
-            "end": end,
-            "dates": dates,
-            "series": series
-        })
 
         # -----------------------------
         # SATÉLITE GOES-16 AOD
         # -----------------------------
-
         for pol in goes:
 
             if pol not in GOES_CONFIG:
 
                 continue
 
-            cfg = GOES_CONFIG[produto]
+            cfg = GOES_CONFIG[pol]
 
-            goes_dates, goes_values = get_goes_series(
+            goes_dates, goes_values = get_satellite_series(
 
-                goes_index=cfg["index"],
+                sat_index=cfg["index"],
 
                 datas_unicas=datas_unicas,
 
@@ -462,12 +444,14 @@ def compare_series():
 
                 lon_station=lon_station,
 
+                delta=0.5,
+
                 scale=cfg.get("scale", 1.0)
 
             )
 
             print("\n======================")
-            print("PRODUTO GOES:", produto)
+            print("PRODUTO GOES:", pol)
             print("INDEX DIR:", cfg["index"])
             print("DATAS:", goes_dates)
             print("VALORES:", goes_values)
@@ -509,6 +493,18 @@ def compare_series():
 
                 "satellite": True
             })
+
+
+        return jsonify({
+            "station": {
+                "codigo": codigo,
+                "nome": nome_estacao
+            },
+            "start": start,
+            "end": end,
+            "dates": dates,
+            "series": series
+        })
 
 
     except Exception as e:
@@ -613,11 +609,20 @@ CETESB_CONFIG = {
 
 GOES_INDEX = {
 
-    "AOD": build_goes_index(
+    "AOD": build_satellite_index(
         "/data/geotiff/goes_aod"
     )
 
 }
+
+print("\n======================")
+print("GOES INDEX")
+print("Arquivos encontrados:", len(GOES_INDEX["AOD"]))
+
+for k, v in list(GOES_INDEX["AOD"].items())[:5]:
+    print(k, "->", v)
+print("======================")
+
 
 GOES_CONFIG = {
 
@@ -636,6 +641,9 @@ GOES_CONFIG = {
         "scale": 1.0
     }
 }
+
+print(GOES_INDEX["AOD"])
+
 
 if __name__ == "__main__":
     #app.run(debug=True)
