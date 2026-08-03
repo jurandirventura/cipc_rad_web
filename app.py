@@ -638,7 +638,7 @@ GOES_CONFIG = {
 
         "unit": "AOD",
 
-        "scale": 1.0
+        "scale": 100
     }
 }
 
