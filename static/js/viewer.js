@@ -513,43 +513,132 @@ async function loadCetesbStations(){
 }
 
 // ---------------------
-async function loadAnos(){
 
-let produto=document.getElementById("produto").value
+async function loadAnos() {
 
-let anos=await (await fetch("/api/anos/"+produto)).json()
+    const produto = document.getElementById("produto").value;
 
-let select=document.getElementById("ano")
-select.innerHTML=""
+    const selectAno = document.getElementById("ano");
 
-anos.forEach(a=>{
-let o=document.createElement("option")
-o.value=a
-o.text=a
-select.add(o)
-})
+    selectAno.innerHTML = "";
 
-loadDatas()
+    if (!produto) {
+        return;
+    }
+
+    const anos = await (
+        await fetch(`/api/anos/${produto}`)
+    ).json();
+
+    anos.forEach(ano => {
+
+        const option = document.createElement("option");
+
+        option.value = ano;
+        option.text = ano;
+
+        selectAno.add(option);
+
+    });
+
+    if (anos.length > 0) {
+
+        await loadDatas();
+
+    }
 }
+
 
 // ---------------------
-async function loadDatas(){
 
-let produto=document.getElementById("produto").value
-let ano=document.getElementById("ano").value
+async function loadDatas() {
 
-let datas=await (await fetch("/api/datas/"+produto+"/"+ano)).json()
+    const produto = document.getElementById("produto").value;
+    const ano = document.getElementById("ano").value;
 
-let select=document.getElementById("data")
-select.innerHTML=""
+    const selectData = document.getElementById("data");
 
-datas.forEach(d=>{
-let o=document.createElement("option")
-o.value=d
-o.text=d
-select.add(o)
-})
+    selectData.innerHTML = "";
+
+    if (!produto || !ano) {
+        return;
+    }
+
+    const datas = await (
+        await fetch(`/api/datas/${produto}/${ano}`)
+    ).json();
+
+    datas.forEach(data => {
+
+        const option = document.createElement("option");
+
+        option.value = data;
+        option.text = formatarData(data);
+
+        selectData.add(option);
+
+    });
+
+    if (datas.length > 0) {
+
+        await loadHoras();
+
+    }
 }
+
+
+// ---------------------
+
+
+async function loadHoras() {
+
+    const produto = document.getElementById("produto").value;
+    const ano = document.getElementById("ano").value;
+    const data = document.getElementById("data").value;
+
+    const horaContainer =
+        document.getElementById("horaContainer");
+
+    const selectHora =
+        document.getElementById("hora");
+
+    selectHora.innerHTML = "";
+
+    horaContainer.style.display = "none";
+
+    if (!produto || !ano || !data) {
+        return;
+    }
+
+    const horas = await (
+        await fetch(
+            `/api/horas/${produto}/${ano}/${data}`
+        )
+    ).json();
+
+    /*
+     * Se existem horários, mostra o campo.
+     */
+
+    if (horas.length > 0) {
+
+        horaContainer.style.display = "block";
+
+        horas.forEach(hora => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = hora;
+            option.text = hora;
+
+            selectHora.add(option);
+
+        });
+
+    }
+}
+
 
 // ---------------------
 async function loadColormap(product){
@@ -726,54 +815,193 @@ function getSeriesColor(name){
 
 
 // ---------------------
-async function getGeoTiff(produto,data){
 
-let key=produto+"_"+data
+async function getGeoTiff(produto, data, hora = "") {
 
-if(geotiffCache[key]){
-return geotiffCache[key]
-}
+    // =====================================================
+    // CACHE
+    // =====================================================
 
-let ano=data.substring(0,4)
-let url="/geotiff/"+produto+"/"+ano+"/"+data
+    let key = produto + "_" + data;
 
-let response=await fetch(url)
-let arrayBuffer=await response.arrayBuffer()
-let georaster=await parseGeoraster(arrayBuffer)
+    if (produto === "goes_aod" && hora) {
 
-geotiffCache[key]=georaster
+        key += "_" + hora.replace(/:/g, "");
+    }
 
-return georaster
+    if (geotiffCache[key]) {
+
+        return geotiffCache[key];
+    }
+
+    // =====================================================
+    // ANO
+    // =====================================================
+
+    let ano = data.substring(0, 4);
+
+    // =====================================================
+    // URL
+    // =====================================================
+
+    let url;
+
+    if (produto === "goes_aod" && hora) {
+
+        url =
+            "/geotiff/" +
+            produto +
+            "/" +
+            ano +
+            "/" +
+            data +
+            "/" +
+            hora;
+
+    } else {
+
+        url =
+            "/geotiff/" +
+            produto +
+            "/" +
+            ano +
+            "/" +
+            data;
+    }
+
+    console.log("GeoTIFF URL:", url);
+
+    // =====================================================
+    // DOWNLOAD
+    // =====================================================
+
+    let response = await fetch(url);
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Erro ao carregar GeoTIFF: " +
+            response.status +
+            " - " +
+            url
+        );
+    }
+
+    let arrayBuffer =
+        await response.arrayBuffer();
+
+    let georaster =
+        await parseGeoraster(arrayBuffer);
+
+    // =====================================================
+    // CACHE
+    // =====================================================
+
+    geotiffCache[key] = georaster;
+
+    return georaster;
 }
 
 // ---------------------
-async function addLayer(){
 
-let produto=document.getElementById("produto").value
-let data=document.getElementById("data").value
+async function addLayer() {
 
-let nome=produto+" "+data
+    const produto =
+        document.getElementById("produto").value;
 
-if(layers.find(l=>l.nome===nome)){
-alert("Camada já carregada")
-return
+    const data =
+        document.getElementById("data").value;
+
+    let hora = "";
+
+    // =====================================================
+    // GOES-AOD possui horário
+    // =====================================================
+
+    if (produto === "goes_aod") {
+
+        hora =
+            document.getElementById("hora").value;
+
+        if (!hora) {
+
+            alert(
+                "Selecione o horário do GOES-AOD."
+            );
+
+            return;
+        }
+    }
+
+    // =====================================================
+    // Nome da camada
+    // =====================================================
+
+    let nome =
+        produto + " " + data;
+
+    if (hora) {
+
+        nome += " " + hora;
+    }
+
+    // =====================================================
+    // Verificar duplicidade
+    // =====================================================
+
+    if (layers.find(l => l.nome === nome)) {
+
+        alert("Camada já carregada");
+
+        return;
+    }
+
+    // =====================================================
+    // Colormap
+    // =====================================================
+
+    let cmap =
+        await loadColormap(produto);
+
+    // =====================================================
+    // GeoTIFF
+    // =====================================================
+
+    let georaster =
+        await getGeoTiff(
+            produto,
+            data,
+            hora
+        );
+
+    // =====================================================
+    // Criar camada
+    // =====================================================
+
+    let layer =
+        createRasterLayer(
+            georaster,
+            cmap
+        );
+
+    layer.nome = nome;
+    layer.cmap = cmap;
+
+    layer.addTo(map);
+
+    layers.push(layer);
+
+    // =====================================================
+    // Legenda
+    // =====================================================
+
+    createLegend(
+        cmap,
+        nome,
+        layer
+    );
 }
 
-let cmap=await loadColormap(produto)
-let georaster=await getGeoTiff(produto,data)
-
-let layer=createRasterLayer(georaster,cmap)
-
-layer.nome=nome
-layer.cmap=cmap
-
-layer.addTo(map)
-
-layers.push(layer)
-
-// createLegend(cmap,nome)
-createLegend(cmap, nome, layer)
-}
 // ---------------------
 
 function createRasterLayer(georaster,cmap){
@@ -1544,6 +1772,19 @@ function formatDateBR(dateStr)
     return `${p[2]}/${p[1]}/${p[0]}`;
 }
 
+function formatarData(data) {
+
+    if (data.length !== 8) {
+        return data;
+    }
+
+    return (
+        data.substring(6, 8) + "/" +
+        data.substring(4, 6) + "/" +
+        data.substring(0, 4)
+    );
+}
+
 
 function markerToChartJS(marker)
 {
@@ -1811,11 +2052,33 @@ const resizeObserver = new ResizeObserver(() => {
 
 const produto = document.getElementById("produto");
 const ano = document.getElementById("ano");
+const data = document.getElementById("data");
+const hora = document.getElementById("hora");
+
+if(produto)
+    produto.onchange = loadAnos;
+
+if(ano)
+    ano.onchange = loadDatas;
+
+if(data)
+    data.onchange = loadHoras;
+
 const timeSlider = document.getElementById("timeSlider");
 
 if(produto) produto.onchange = loadAnos;
 if(ano) ano.onchange = loadDatas;
 if(timeSlider) timeSlider.oninput = updateTimeline;
+
+document.getElementById("produto")
+    .addEventListener("change", loadAnos);
+
+document.getElementById("ano")
+    .addEventListener("change", loadDatas);
+
+document.getElementById("data")
+    .addEventListener("change", loadHoras);
+
 
 dragElement(document.getElementById("comparePanel"))
 dragElement(document.getElementById("timelinePanel"))

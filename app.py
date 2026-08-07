@@ -75,7 +75,8 @@ def datas(produto, ano):
 
     path = os.path.join(DATA_DIR, produto, ano)
 
-    datas = []
+    # datas = []
+    datas = set()
 
     for f in os.listdir(path):
 
@@ -85,24 +86,130 @@ def datas(produto, ano):
             m = re.search(r'(\d{8})', f)
 
             if m:
-                datas.append(m.group(1))
+                # datas.append(m.group(1))
+                datas.add(m.group(1))
 
+    # return jsonify(sorted(datas))
     return jsonify(sorted(datas))
 
 
 # ---------------------------------------------------
-@app.route("/geotiff/<produto>/<ano>/<data>")
-def geotiff(produto, ano, data):
 
-    path = os.path.join(DATA_DIR, produto, ano)
+@app.route("/geotiff/<produto>/<ano>/<data>")
+@app.route("/geotiff/<produto>/<ano>/<data>/<hora>")
+def get_geotiff(produto, ano, data, hora=None):
+
+    path = os.path.join(
+        DATA_DIR,
+        produto,
+        ano
+    )
+
+    if not os.path.exists(path):
+
+        return {
+            "erro": f"Diretório não encontrado: {path}"
+        }, 404
+
+    # =====================================================
+    # GOES-AOD
+    # =====================================================
+
+    if produto == "goes_aod" and hora:
+
+        # hora recebida:
+        # 14:30:20
+        #
+        # arquivo:
+        # aod_goes16_20240816_143020.tif
+
+        hora_arquivo = hora.replace(":", "")
+
+        nome_arquivo = (
+            f"aod_goes16_{data}_{hora_arquivo}.tif"
+        )
+
+        arquivo = os.path.join(
+            path,
+            nome_arquivo
+        )
+
+        if os.path.exists(arquivo):
+
+            return send_file(arquivo)
+
+        return {
+            "erro": f"Arquivo não encontrado: {nome_arquivo}"
+        }, 404
+
+    # =====================================================
+    # Produtos diários
+    # Sentinel-5P etc.
+    # =====================================================
 
     for f in os.listdir(path):
 
-        if data in f and f.endswith(".tif"):
+        if (
+            data in f
+            and f.endswith(".tif")
+        ):
 
-            return send_file(os.path.join(path, f))
+            return send_file(
+                os.path.join(path, f)
+            )
 
-    return {"erro": "arquivo não encontrado"}, 404
+    return {
+        "erro": "arquivo não encontrado"
+    }, 404
+
+
+# ---------------------------------------------------
+
+@app.route("/api/horas/<produto>/<ano>/<data>")
+def get_horas(produto, ano, data):
+
+    if produto == "goes_aod":
+
+        pasta = f"/data/geotiff/goes_aod/{ano}"
+
+    else:
+
+        return jsonify([])
+
+    if not os.path.exists(pasta):
+
+        return jsonify([])
+
+    horas = []
+
+    for arquivo in os.listdir(pasta):
+
+        if not arquivo.endswith(".tif"):
+            continue
+
+        # Exemplo:
+        # aod_goes16_20240816_143020.tif
+
+        match = re.search(
+            rf"_{data}_(\d{{6}})\.tif$",
+            arquivo
+        )
+
+        if match:
+
+            hora = match.group(1)
+
+            hora_formatada = (
+                hora[0:2] + ":" +
+                hora[2:4] + ":" +
+                hora[4:6]
+            )
+
+            horas.append(hora_formatada)
+
+    horas = sorted(set(horas))
+
+    return jsonify(horas)
 
 
 # ---------------------------------------------------
@@ -610,7 +717,8 @@ CETESB_CONFIG = {
 GOES_INDEX = {
 
     "AOD": build_satellite_index(
-        "/data/geotiff/goes_aod"
+        "/data/geotiff/goes_aod",
+        include_time=True
     )
 
 }
