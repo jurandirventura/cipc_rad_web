@@ -1514,18 +1514,79 @@ function downloadChartJPG(tipo)
 
 // ---------------------
 
+// =========================================================
+// Redimensionamento automático dos gráficos
+// =========================================================
+
+function observeChartResize(panelId, chart) {
+
+    const panel =
+        document.getElementById(panelId);
+
+    if (!panel || !chart) {
+        return;
+    }
+
+    const observer =
+        new ResizeObserver(() => {
+
+            chart.resize();
+
+        });
+
+    observer.observe(panel);
+
+    return observer;
+}
+
+
+// ---------------------
+
 function toggleTimeline(){
 
-let panel = document.getElementById("timelinePanel")
+    let panel =
+        document.getElementById("timelinePanel");
 
-if(panel.style.display === "none" || panel.style.display === ""){
-panel.style.display = "block"
-}else{
-panel.style.display = "none"
+    if(
+        panel.style.display === "none" ||
+        panel.style.display === ""
+    ){
+
+        panel.style.display = "flex";
+
+    } else {
+
+        panel.style.display = "none";
+    }
+
+    if (window.timelineChart) {
+
+        setTimeout(() => {
+
+            window.timelineChart.resize();
+
+        }, 100);
+    }
+
+    map.invalidateSize();
 }
 
-map.invalidateSize()
-}
+
+
+
+
+// function toggleTimeline(){
+
+// let panel = document.getElementById("timelinePanel")
+
+// if(panel.style.display === "none" || panel.style.display === ""){
+// panel.style.display = "block"
+// }else{
+// panel.style.display = "none"
+// }
+
+// map.invalidateSize()
+// }
 
 // ---------------------
 
@@ -1987,8 +2048,18 @@ function drawCompareChart(data){
 
 
         });
+        // window.activeChart = "compare";
+        // openComparePanel();
+
         window.activeChart = "compare";
+
         openComparePanel();
+
+        observeChartResize(
+            "comparePanel",
+            window.compareChart
+        );
+
     }
    
 

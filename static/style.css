@@ -56,6 +56,36 @@ body{
     cursor:move;
 }
 
+/* #comparePanel,
+#timelinePanel{
+
+    position:absolute;
+
+    width:600px;
+    height:350px;
+
+    background:white;
+
+    border:1px solid #ccc;
+
+    z-index:9999;
+
+    resize:both;
+
+    overflow:auto;
+
+    box-shadow:0 0 10px rgba(0,0,0,.3);
+
+    display:none;
+}
+
+.chartHeader{
+    background:#333;
+    color:white;
+    padding:5px;
+    cursor:move;
+} */
+
 #map{
     position:absolute;
     top:0;
@@ -75,7 +105,132 @@ body{
     z-index:1000;
 }
 
+
+/* =========================================================
+   PAINÉIS DOS GRÁFICOS
+   ========================================================= */
+
 .panelChart {
+
+    position: absolute;
+
+    width: 750px;
+    height: 500px;
+
+    min-width: 500px;
+    min-height: 350px;
+
+    background: white;
+
+    border: 1px solid #ccc;
+
+    z-index: 9999;
+
+    resize: both;
+
+    overflow: hidden;
+
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+
+    display: none;
+
+    box-sizing: border-box;
+
+    flex-direction: column;
+}
+
+
+/* =========================================================
+   POSIÇÃO DOS PAINÉIS
+   ========================================================= */
+
+#comparePanel{
+    top:100px;
+    left:350px;
+}
+
+#timelinePanel{
+    top:150px;
+    left:420px;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+   ========================================================= */
+
+.chartHeader{
+
+    flex: 0 0 35px;
+
+    background:#333;
+
+    color:white;
+
+    padding:7px 10px;
+
+    cursor:move;
+
+    box-sizing:border-box;
+
+}
+
+
+/* =========================================================
+   ÁREA DO GRÁFICO
+   ========================================================= */
+
+.chartContainer{
+
+    position:relative;
+
+    flex:1;
+
+    min-height:0;
+
+    width:100%;
+
+    box-sizing:border-box;
+
+}
+
+
+/* =========================================================
+   CANVAS
+   ========================================================= */
+
+.chartContainer canvas{
+
+    position:absolute;
+
+    top:0;
+    left:0;
+
+    width:100% !important;
+    height:100% !important;
+
+}
+
+
+/* =========================================================
+   BOTÕES
+   ========================================================= */
+
+.chartButtons{
+
+    flex:0 0 40px;
+
+    padding:5px;
+
+    text-align:center;
+
+    box-sizing:border-box;
+
+    background:white;
+
+}
+
+/* .panelChart {
     position: absolute;
     width: 600px;
     height: 350px;
@@ -86,7 +241,7 @@ body{
     overflow: auto;
     box-shadow: 0 0 10px rgba(0,0,0,.3);
     display: none;
-}
+} */
 
 
 #comparePanel{
@@ -99,9 +254,9 @@ body{
     left:420px;
 }
 
-#pixelChart,
+/* #pixelChart,
 #timelineChart{
     width:100% !important;
     height:280px !important;
-}
+} */
 
