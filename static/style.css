@@ -1,4 +1,4 @@
-body{
+/* body{
     margin:0;
     font-family:Arial;
     overflow:hidden;
@@ -84,7 +84,7 @@ body{
     color:white;
     padding:5px;
     cursor:move;
-} */
+} 
 
 #map{
     position:absolute;
@@ -103,12 +103,231 @@ body{
     padding:10px;
     border-radius:6px;
     z-index:1000;
+} */
+
+
+body {
+    margin: 0;
+    font-family: Arial;
+    overflow: hidden;
 }
+
+
+/* =========================================================
+   CONTAINER PRINCIPAL
+   ========================================================= */
+
+#mainContainer {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+#sidebar {
+    flex: 0 0 320px;
+    width: 320px;
+    min-width: 320px;
+    height: 100vh;
+
+    background: #f5f5f5;
+
+    padding: 10px;
+
+    overflow-y: auto;
+
+    border-right: 1px solid #ccc;
+
+    box-sizing: border-box;
+
+    position: relative;
+
+    z-index: 2000;
+}
+
+
+/* =========================================================
+   ÁREA DO MAPA
+   ========================================================= */
+
+#content {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100vh;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   MAPA
+   ========================================================= */
+
+#map {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 0;
+}
+
+
+/* =========================================================
+   VALORES DO PIXEL
+   ========================================================= */
+
+#pixelValues {
+    position: absolute;
+
+    bottom: 15px;
+    right: 15px;
+
+    background: rgba(255,255,255,0.9);
+
+    padding: 10px;
+
+    border-radius: 6px;
+
+    z-index: 1000;
+}
+
 
 
 /* =========================================================
    PAINÉIS DOS GRÁFICOS
    ========================================================= */
+
+.panelChart {
+    position: absolute;
+
+    width: 750px;
+    height: 500px;
+
+    min-width: 500px;
+    min-height: 350px;
+
+    background: white;
+
+    border: 1px solid #ccc;
+
+    z-index: 9999;
+
+    resize: both;
+
+    overflow: hidden;
+
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+
+    display: none;
+
+    box-sizing: border-box;
+
+    flex-direction: column;
+}
+
+
+/* =========================================================
+   POSIÇÃO
+   ========================================================= */
+
+#comparePanel {
+    top: 100px;
+    left: 350px;
+}
+
+#timelinePanel {
+    top: 150px;
+    left: 420px;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+   ========================================================= */
+
+.chartHeader {
+    flex: 0 0 35px;
+
+    background: #333;
+    color: white;
+
+    padding: 7px 10px;
+
+    cursor: move;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   ÁREA DO GRÁFICO
+   ========================================================= */
+
+.chartContainer {
+
+    position: relative;
+
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   CANVAS
+   ========================================================= */
+
+.chartContainer canvas {
+
+    display: block;
+
+    width: 100% !important;
+
+    height: 100% !important;
+}
+
+
+/* =========================================================
+   BOTÕES
+   ========================================================= */
+
+.chartButtons {
+    flex: 0 0 40px;
+
+    padding: 5px;
+
+    text-align: center;
+
+    box-sizing: border-box;
+
+    background: white;
+}
+
+
+
+
+
+
+
+/* /* =========================================================
+   PAINÉIS DOS GRÁFICOS
+   ========================================================= 
 
 .panelChart {
 
@@ -142,7 +361,7 @@ body{
 
 /* =========================================================
    POSIÇÃO DOS PAINÉIS
-   ========================================================= */
+   ========================================================= 
 
 #comparePanel{
     top:100px;
@@ -157,7 +376,7 @@ body{
 
 /* =========================================================
    CABEÇALHO
-   ========================================================= */
+   ========================================================= 
 
 .chartHeader{
 
@@ -178,7 +397,7 @@ body{
 
 /* =========================================================
    ÁREA DO GRÁFICO
-   ========================================================= */
+   ========================================================= 
 
 .chartContainer{
 
@@ -195,9 +414,9 @@ body{
 }
 
 
-/* =========================================================
+ =========================================================
    CANVAS
-   ========================================================= */
+   ========================================================= 
 
 .chartContainer canvas{
 
@@ -212,9 +431,9 @@ body{
 }
 
 
-/* =========================================================
+ =========================================================
    BOTÕES
-   ========================================================= */
+   ========================================================= 
 
 .chartButtons{
 
@@ -230,7 +449,7 @@ body{
 
 }
 
-/* .panelChart {
+ .panelChart {
     position: absolute;
     width: 600px;
     height: 350px;
@@ -241,7 +460,7 @@ body{
     overflow: auto;
     box-shadow: 0 0 10px rgba(0,0,0,.3);
     display: none;
-} */
+} 
 
 
 #comparePanel{
@@ -254,9 +473,9 @@ body{
     left:420px;
 }
 
-/* #pixelChart,
+ #pixelChart,
 #timelineChart{
     width:100% !important;
     height:280px !important;
-} */
-
+} 
+ */

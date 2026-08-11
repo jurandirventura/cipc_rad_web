@@ -725,10 +725,12 @@ GOES_INDEX = {
 
 print("\n======================")
 print("GOES INDEX")
-print("Arquivos encontrados:", len(GOES_INDEX["AOD"]))
+print("Dias encontrados:", len(GOES_INDEX["AOD"]))
 
 for k, v in list(GOES_INDEX["AOD"].items())[:5]:
-    print(k, "->", v)
+    print(k, "->",len(v),
+            "arquivos"
+    )
 print("======================")
 
 

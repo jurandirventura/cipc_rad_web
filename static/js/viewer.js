@@ -397,7 +397,7 @@ async function compareSeries() {
 
     document.getElementById(
         "comparePanel"
-    ).style.display="block";
+    ).style.display="flex";
 
     drawCompareChart(data);
 
@@ -1893,7 +1893,7 @@ function drawCompareChart(data){
 
     document.getElementById(
         "comparePanel"
-    ).style.display = "block";
+    ).style.display = "flex";
 
     const canvas =
         document.getElementById(
@@ -1974,7 +1974,7 @@ function drawCompareChart(data){
     console.log("ORDEM FINAL:");
     datasets.forEach(d => console.log(d.label));    
  
-    document.getElementById("comparePanel").style.display = "block";
+    document.getElementById("comparePanel").style.display = "flex";
 
 
     if (window.compareChart) {
@@ -2101,7 +2101,7 @@ function drawTimelineChart(values, cmap, produto){
 function openPanel(id){
     document.getElementById("comparePanel").style.display = "none";
     document.getElementById("timelinePanel").style.display = "none";
-    document.getElementById(id).style.display = "block";
+    document.getElementById(id).style.display = "flex";
 }
 
 //----------------------
