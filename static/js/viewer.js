@@ -312,9 +312,10 @@ loadCetesbStations()
 
 //----------------------
 
+
 async function compareSeries() {
 
-    if(!selectedStation){
+    if (!selectedStation) {
         alert("Selecione uma estação CETESB");
         return;
     }
@@ -324,84 +325,218 @@ async function compareSeries() {
         selectedStation
     );
 
-    let cetesb=[];
+    let cetesb = [];
 
     document
-      .querySelectorAll(".cetesbGas:checked")
-      .forEach(cb => cetesb.push(cb.value));
+        .querySelectorAll(".cetesbGas:checked")
+        .forEach(cb => cetesb.push(cb.value));
 
-    console.log("cetesb=", cetesb);
-
-    let sat=[];
+    let sat = [];
 
     document
-      .querySelectorAll(".satGas:checked")
-      .forEach(cb => sat.push(cb.value));
+        .querySelectorAll(".satGas:checked")
+        .forEach(cb => sat.push(cb.value));
 
-    console.log("sat=", sat);
-
-    let goes=[];
+    let goes = [];
 
     document
         .querySelectorAll(".goesGas:checked")
         .forEach(cb => goes.push(cb.value));
 
+    console.log("cetesb=", cetesb);
+    console.log("sat=", sat);
     console.log("goes=", goes);
+
+    const start =
+        document.getElementById("startDate").value;
+
+    const end =
+        document.getElementById("endDate").value;
+
+    let url =
+        `/api/compare_series?station=${encodeURIComponent(selectedStation.codigo)}`;
+
+    cetesb.forEach(g => {
+        url += `&cetesb=${encodeURIComponent(g)}`;
+    });
+
+    sat.forEach(g => {
+        url += `&sat=${encodeURIComponent(g)}`;
+    });
+
+    goes.forEach(g => {
+        url += `&goes=${encodeURIComponent(g)}`;
+    });
+
+    url += `&start=${encodeURIComponent(start)}`;
+    url += `&end=${encodeURIComponent(end)}`;
+
+    console.log("URL=", url);
+    console.log("ANTES DO FETCH");
+
+    try {
+
+        const resp = await fetch(url, {
+            method: "GET",
+            cache: "no-store"
+        });
+
+        console.log(
+            "FETCH TERMINOU"
+        );
+
+        console.log(
+            "STATUS=",
+            resp.status
+        );
+
+        console.log(
+            "OK=",
+            resp.ok
+        );
+
+        if (!resp.ok) {
+
+            const textoErro =
+                await resp.text();
+
+            throw new Error(
+                `HTTP ${resp.status}: ${textoErro}`
+            );
+        }
+
+        const data =
+            await resp.json();
+
+        console.log(
+            "JSON=",
+            data
+        );
+
+        window.lastCompareData = data;
+
+        if (data.erro) {
+
+            alert(data.erro);
+            return;
+        }
+
+        document.getElementById(
+            "comparePanel"
+        ).style.display = "flex";
+
+        console.log(
+            "RETORNO=",
+            data
+        );
+
+        drawCompareChart(data);
+
+    } catch (erro) {
+
+        console.error(
+            "ERRO COMPLETO NO FETCH:",
+            erro
+        );
+
+        alert(
+            "Erro ao consultar a API. Veja o console."
+        );
+    }
+}
+
+
+// // até 12ago2026
+// async function compareSeries() {
+
+//     if(!selectedStation){
+//         alert("Selecione uma estação CETESB");
+//         return;
+//     }
+
+//     console.log(
+//         "selectedStation=",
+//         selectedStation
+//     );
+
+//     let cetesb=[];
+
+//     document
+//       .querySelectorAll(".cetesbGas:checked")
+//       .forEach(cb => cetesb.push(cb.value));
+
+//     console.log("cetesb=", cetesb);
+
+//     let sat=[];
+
+//     document
+//       .querySelectorAll(".satGas:checked")
+//       .forEach(cb => sat.push(cb.value));
+
+//     console.log("sat=", sat);
+
+//     let goes=[];
+
+//     document
+//         .querySelectorAll(".goesGas:checked")
+//         .forEach(cb => goes.push(cb.value));
+
+//     console.log("goes=", goes);
 
 
 
     
-    let start =
-      document.getElementById("startDate").value;
+//     let start =
+//       document.getElementById("startDate").value;
 
-    let end =
-      document.getElementById("endDate").value;
+//     let end =
+//       document.getElementById("endDate").value;
 
-    let url =
-      `/api/compare_series?station=${selectedStation.codigo}`;
+//     let url =
+//       `/api/compare_series?station=${selectedStation.codigo}`;
 
-    cetesb.forEach(g =>
-        url += `&cetesb=${g}`
-    );
+//     cetesb.forEach(g =>
+//         url += `&cetesb=${g}`
+//     );
 
-    sat.forEach(g =>
-        url += `&sat=${g}`
-    );
+//     sat.forEach(g =>
+//         url += `&sat=${g}`
+//     );
 
-    goes.forEach(g =>
-        url += `&goes=${g}`
-    );
+//     goes.forEach(g =>
+//         url += `&goes=${g}`
+//     );
 
-    url += `&start=${start}`;
-    url += `&end=${end}`;
+//     url += `&start=${start}`;
+//     url += `&end=${end}`;
 
-    console.log("URL=", url);
+//     console.log("URL=", url);
 
-    let resp = await fetch(url);
+//     let resp = await fetch(url);
 
-    let data = await resp.json();
+//     let data = await resp.json();
 
-    console.log(
-    JSON.stringify(data, null, 2)
-    );
+//     console.log(
+//     JSON.stringify(data, null, 2)
+//     );
 
-    window.lastCompareData = data;
+//     window.lastCompareData = data;
 
-    console.log("RETORNO=", data);
+//     console.log("RETORNO=", data);
 
-    if(data.erro){
+//     if(data.erro){
 
-        alert(data.erro);
-        return;
-    }
+//         alert(data.erro);
+//         return;
+//     }
 
-    document.getElementById(
-        "comparePanel"
-    ).style.display="flex";
+//     document.getElementById(
+//         "comparePanel"
+//     ).style.display="flex";
 
-    drawCompareChart(data);
+//     drawCompareChart(data);
 
-}
+// }
 
 // ----------------------------------------------------
 

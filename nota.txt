@@ -34,3 +34,30 @@ Leaflet
  └── L.marker(...)
            ↓
 Mapa mostra estações CETESB
+
+Processamento a partir do GeoTIFF do backend cipc_rad
+
+GOES GeoTIFF
+      ↓
+build_satellite_index()
+      ↓
+85 arquivos/dia
+      ↓
+get_satellite_mean()
+      ↓
+média diária
+      ↓
+get_satellite_series()
+      ↓
+/api/compare_series
+      ↓
+JSON
+      ↓
+curl = OK
+
+browser
+   ↓
+fetch()
+   ↓
+/api/compare_series
+
