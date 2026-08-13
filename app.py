@@ -624,6 +624,10 @@ def compare_series():
         }), 500
 
 
+@app.route("/api/test")
+def api_test():
+    return jsonify({"status": "ok"})
+
 
 # Verifica as estações que tem arquivos de dados csv
 # e comunica com o viewer.js e deixa o marcador na 
