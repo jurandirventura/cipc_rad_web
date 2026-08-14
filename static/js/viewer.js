@@ -312,7 +312,6 @@ loadCetesbStations()
 
 //----------------------
 
-
 async function compareSeries() {
 
     if (!selectedStation) {
@@ -374,76 +373,302 @@ async function compareSeries() {
     console.log("URL=", url);
     console.log("ANTES DO FETCH");
 
+
+    // =====================================================
+    // FETCH
+    // =====================================================
+
+    let resp;
+
     try {
 
-        const resp = await fetch(url, {
+        resp = await fetch(url, {
             method: "GET",
             cache: "no-store"
         });
 
-        console.log(
-            "FETCH TERMINOU"
-        );
-
-        console.log(
-            "STATUS=",
-            resp.status
-        );
-
-        console.log(
-            "OK=",
-            resp.ok
-        );
-
-        if (!resp.ok) {
-
-            const textoErro =
-                await resp.text();
-
-            throw new Error(
-                `HTTP ${resp.status}: ${textoErro}`
-            );
-        }
-
-        const data =
-            await resp.json();
-
-        console.log(
-            "JSON=",
-            data
-        );
-
-        window.lastCompareData = data;
-
-        if (data.erro) {
-
-            alert(data.erro);
-            return;
-        }
-
-        document.getElementById(
-            "comparePanel"
-        ).style.display = "flex";
-
-        console.log(
-            "RETORNO=",
-            data
-        );
-
-        drawCompareChart(data);
-
     } catch (erro) {
 
         console.error(
-            "ERRO COMPLETO NO FETCH:",
+            "ERRO REAL NO FETCH:",
             erro
         );
 
         alert(
-            "Erro ao consultar a API. Veja o console."
+            "Erro de comunicação com a API."
         );
+
+        return;
+    }
+
+
+    console.log("FETCH TERMINOU");
+    console.log("STATUS=", resp.status);
+    console.log("OK=", resp.ok);
+
+
+    // =====================================================
+    // JSON
+    // =====================================================
+
+    let data;
+
+    try {
+
+        data = await resp.json();
+
+    } catch (erro) {
+
+        console.error(
+            "ERRO AO CONVERTER JSON:",
+            erro
+        );
+
+        alert(
+            "A API retornou uma resposta inválida."
+        );
+
+        return;
+    }
+
+
+    console.log("JSON RECEBIDO:", data);
+    console.log("SERIES:", data.series);
+
+
+    if (!resp.ok) {
+
+        console.error(
+            "ERRO HTTP:",
+            resp.status,
+            data
+        );
+
+        alert(
+            data.erro ||
+            `Erro HTTP ${resp.status}`
+        );
+
+        return;
+    }
+
+
+    if (data.erro) {
+
+        alert(data.erro);
+        return;
+    }
+
+
+    window.lastCompareData = data;
+
+
+    // =====================================================
+    // DESENHAR GRÁFICO
+    // =====================================================
+
+    try {
+
+        console.log(
+            "ANTES DE drawCompareChart()"
+        );
+
+        drawCompareChart(data);
+
+        console.log(
+            "DEPOIS DE drawCompareChart()"
+        );
+
+    } catch (erro) {
+
+        console.error(
+            "ERRO DENTRO DE drawCompareChart():",
+            erro
+        );
+
+        console.error(
+            "STACK:",
+            erro.stack
+        );
+
+        alert(
+            "A API respondeu corretamente, mas ocorreu um erro ao desenhar o gráfico. Veja o console."
+        );
+
+        return;
     }
 }
+
+
+// async function compareSeries() {
+
+//     if (!selectedStation) {
+//         alert("Selecione uma estação CETESB");
+//         return;
+//     }
+
+//     console.log(
+//         "selectedStation=",
+//         selectedStation
+//     );
+
+//     let cetesb = [];
+
+//     document
+//         .querySelectorAll(".cetesbGas:checked")
+//         .forEach(cb => cetesb.push(cb.value));
+
+//     let sat = [];
+
+//     document
+//         .querySelectorAll(".satGas:checked")
+//         .forEach(cb => sat.push(cb.value));
+
+//     let goes = [];
+
+//     document
+//         .querySelectorAll(".goesGas:checked")
+//         .forEach(cb => goes.push(cb.value));
+
+//     console.log("cetesb=", cetesb);
+//     console.log("sat=", sat);
+//     console.log("goes=", goes);
+
+//     const start =
+//         document.getElementById("startDate").value;
+
+//     const end =
+//         document.getElementById("endDate").value;
+
+//     let url =
+//         `/api/compare_series?station=${encodeURIComponent(selectedStation.codigo)}`;
+
+//     cetesb.forEach(g => {
+//         url += `&cetesb=${encodeURIComponent(g)}`;
+//     });
+
+//     sat.forEach(g => {
+//         url += `&sat=${encodeURIComponent(g)}`;
+//     });
+
+//     goes.forEach(g => {
+//         url += `&goes=${encodeURIComponent(g)}`;
+//     });
+
+//     url += `&start=${encodeURIComponent(start)}`;
+//     url += `&end=${encodeURIComponent(end)}`;
+
+//     console.log("URL=", url);
+//     console.log("ANTES DO FETCH");
+
+//     // drawCompareChart(data);
+
+//     fetch(url)
+//         .then(response => {
+//             console.log("RESPONSE:", response);
+//             console.log("STATUS:", response.status);
+
+//             if (!response.ok) {
+//                 throw new Error(`HTTP ${response.status}`);
+//             }
+
+//             return response.json();
+//         })
+//         .then(data => {
+//             console.log("JSON RECEBIDO:", data);
+//             console.log("SERIES:", data.series);
+
+//             drawCompareChart(data);
+//         })
+//         .catch(error => {
+//             console.error("ERRO:", error);
+//         });
+
+//         console.log("ENTROU NO GRÁFICO...");
+
+//         console.log("GRÁFICO 1");
+
+//         const canvas =
+//             document.getElementById("pixelChart");
+
+//         console.log("GRÁFICO 2 - canvas=", canvas);
+
+//         const ctx =
+//             canvas.getContext("2d");
+
+//         console.log("GRÁFICO 3 - ctx=", ctx);       
+
+
+    // try {
+
+    //     const resp = await fetch(url, {
+    //         method: "GET",
+    //         cache: "no-store"
+    //     });
+
+    //     console.log(
+    //         "FETCH TERMINOU"
+    //     );
+
+    //     console.log(
+    //         "STATUS=",
+    //         resp.status
+    //     );
+
+    //     console.log(
+    //         "OK=",
+    //         resp.ok
+    //     );
+
+    //     if (!resp.ok) {
+
+    //         const textoErro =
+    //             await resp.text();
+
+    //         throw new Error(
+    //             `HTTP ${resp.status}: ${textoErro}`
+    //         );
+    //     }
+
+    //     const data =
+    //         await resp.json();
+
+    //     console.log(
+    //         "JSON=",
+    //         data
+    //     );
+
+    //     window.lastCompareData = data;
+
+    //     if (data.erro) {
+
+    //         alert(data.erro);
+    //         return;
+    //     }
+
+    //     document.getElementById(
+    //         "comparePanel"
+    //     ).style.display = "flex";
+
+    //     console.log(
+    //         "RETORNO=",
+    //         data
+    //     );
+
+    //     // drawCompareChart(data);
+
+    // } catch (erro) {
+
+    //     console.error(
+    //         "ERRO COMPLETO NO FETCH:",
+    //         erro
+    //     );
+
+    //     alert(
+    //         "Erro ao consultar a API. Veja o console."
+    //     );
+    // }
+// }
 
 
 // // até 12ago2026
@@ -1378,17 +1603,26 @@ return description
 }
 },
 
-
-
 scales:{
-y:{
-min:cmap.vmin,
-max:cmap.vmax,
-title:{
-display:true,
-text: unit ? `Value (${unit})` : "Value"
-}
-}
+    y:{
+    min:cmap.vmin,
+    max:cmap.vmax,
+    title:{
+    display:true,
+    text: unit ? `Value (${unit})` : "Value"
+    }
+    },
+
+    // Incluído configuração para y2 em 14/ago/2026
+    y2:{
+    min:cmap.vmin,
+    max:cmap.vmax,
+    title:{
+    display:true,
+    text: unit ? `Value (${unit})` : "Value"
+    }
+    }
+
 }
 }
 
@@ -2022,38 +2256,88 @@ function openTimelinePanel()
 
 //---------------------
 
-function drawCompareChart(data){
-   
+function drawCompareChart(data) {
+
     console.log("ENTROU NO GRÁFICO");
 
-    document.getElementById(
-        "comparePanel"
-    ).style.display = "flex";
+    const panel =
+        document.getElementById("comparePanel");
+
+    panel.style.display = "block";
+
 
     const canvas =
-        document.getElementById(
-            "pixelChart"
-        );
-    
-    const ctx = canvas.getContext("2d");        
+        document.getElementById("pixelChart");
 
-    if(window.compareChart)
-    {
-        window.compareChart.destroy();
+    console.log(
+        "CANVAS=",
+        canvas
+    );
+
+
+    if (!canvas) {
+
+        throw new Error(
+            "Canvas #pixelChart não encontrado."
+        );
     }
 
-    let datasets=[];
 
-    data.series.forEach(s =>
-    {
+    const ctx =
+        canvas.getContext("2d");
+
+    console.log(
+        "CTX=",
+        ctx
+    );
+
+
+    if (!ctx) {
+
+        throw new Error(
+            "Não foi possível obter contexto 2D do canvas."
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // Destrói gráfico anterior
+    // -----------------------------------------------------
+
+    if (window.compareChart) {
+
+        window.compareChart.destroy();
+
+        window.compareChart = null;
+    }
+
+
+    // -----------------------------------------------------
+    // Datasets
+    // -----------------------------------------------------
+
+    let datasets = [];
+
+
+    data.series.forEach(s => {
+
+        console.log(
+            "CRIANDO DATASET:",
+            s.name,
+            s.values
+        );
+
+
         const cor =
             s.color ||
             getSeriesColor(s.name);
+
 
         const pointStyle =
             markerToChartJS(
                 s.marker || "circle"
             );
+
 
         datasets.push({
 
@@ -2065,16 +2349,18 @@ function drawCompareChart(data){
             data: s.values,
 
             borderColor: cor,
+
             backgroundColor: cor,
 
             fill: false,
+
             tension: 0.2,
 
             borderWidth:
                 s.satellite ? 2 : 1.5,
 
             borderDash:
-                s.satellite ? [8,4] : [],
+                s.satellite ? [8, 4] : [],
 
             pointRadius:
                 s.satellite ? 6 : 3,
@@ -2087,115 +2373,343 @@ function drawCompareChart(data){
             yAxisID:
                 s.name.includes("CH4")
                 ? "y2"
-                : "y",
-
+                : "y"
         });
+
     });
 
-    //
-    // ORDENA A LEGENDA
-    //
-    datasets.sort((a,b)=>
-    {
-        let ia = LEGEND_ORDER.indexOf(a.label);
-        let ib = LEGEND_ORDER.indexOf(b.label);
 
-        if(ia === -1) ia = 999;
-        if(ib === -1) ib = 999;
+    console.log(
+        "DATASETS CRIADOS:",
+        datasets
+    );
+
+
+    // -----------------------------------------------------
+    // Ordem da legenda
+    // -----------------------------------------------------
+
+    datasets.sort((a, b) => {
+
+        let ia =
+            LEGEND_ORDER.indexOf(a.label);
+
+        let ib =
+            LEGEND_ORDER.indexOf(b.label);
+
+        if (ia === -1) ia = 999;
+
+        if (ib === -1) ib = 999;
 
         return ia - ib;
     });
 
-    console.log("ORDEM FINAL:");
-    datasets.forEach(d => console.log(d.label));    
- 
-    document.getElementById("comparePanel").style.display = "flex";
+
+    console.log(
+        "ORDEM FINAL:"
+    );
+
+    datasets.forEach(
+        d => console.log(d.label)
+    );
 
 
-    if (window.compareChart) {
-        window.compareChart.destroy();
-        window.compareChart = null;
-    }    
+    // -----------------------------------------------------
+    // Cria gráfico
+    // -----------------------------------------------------
+
+    console.log(
+        "ANTES DE new Chart()"
+    );
+
 
     window.compareChart =
-        new Chart(canvas,{
-            type:"line",
-            data:{
-                labels:data.dates,
-                datasets:datasets
+        new Chart(ctx, {
+
+            type: "line",
+
+            data: {
+
+                labels: data.dates,
+
+                datasets: datasets
             },
 
-            options:{
+            options: {
 
-                responsive:true,
+                responsive: true,
 
-                maintainAspectRatio:false,
+                maintainAspectRatio: false,
 
-                interaction:{
-                    mode:"index",
-                    intersect:false
+                interaction: {
+
+                    mode: "index",
+
+                    intersect: false
                 },
 
-                plugins:{
+                plugins: {
 
-                    title:{
-                        display:true,
-                        text:[
+                    title: {
+
+                        display: true,
+
+                        text: [
+
                             "Qualidade do Ar - Médias Diárias",
+
                             `Estação: ${data.station.codigo} - ${data.station.nome}`,
+
                             `Período: ${formatDateBR(data.start)} a ${formatDateBR(data.end)}`
                         ]
                     },
 
-                    legend:{
-                        position:"top"
+                    legend: {
+
+                        position: "top"
                     },
 
-                    tooltip:{
-                        callbacks:{
+                    tooltip: {
 
-                            title:function(items){
+                        callbacks: {
+
+                            title: function(items) {
 
                                 return formatDateBR(
                                     items[0].label
                                 );
                             },
 
-                            label:function(context){
+                            label: function(context) {
 
-                                let ds = context.dataset;
+                                let ds =
+                                    context.dataset;
 
-                                let valor = context.parsed.y;
+                                let valor =
+                                    context.parsed.y;
 
-                                if(valor == null)
+                                if (valor == null) {
                                     return "";
+                                }
 
-                                let unidade =
-                                    ds.unit || "";
-
-                                return `${ds.label}: ${valor.toFixed(2)} ${unidade}`;
+                                return `${ds.label}: ${valor.toFixed(2)}`;
                             }
                         }
                     }
-
                 }
-            }            
-
-
+            }
         });
-        // window.activeChart = "compare";
-        // openComparePanel();
 
-        window.activeChart = "compare";
 
-        openComparePanel();
+    console.log(
+        "CHART CRIADO:",
+        window.compareChart
+    );
 
-        observeChartResize(
-            "comparePanel",
-            window.compareChart
-        );
 
-    }
+    window.activeChartType =
+        "compare";
+
+    openComparePanel();
+}
+
+
+// function drawCompareChart(data){
+   
+//     console.log("ENTROU NO GRÁFICO");
+
+//     document.getElementById(
+//         "comparePanel"
+//     ).style.display = "flex";
+
+//     const canvas =
+//         document.getElementById(
+//             "pixelChart"
+//         );
+    
+//     const ctx = canvas.getContext("2d");        
+
+//     if (window.compareChart) {
+//         window.compareChart.destroy();
+//         window.compareChart = null;
+//     }    
+
+//     // Removido mais abaixo de substituído pelo conteúdo acima
+//     // if(window.compareChart)
+//     // {
+//     //     window.compareChart.destroy();
+//     // }
+
+//     let datasets=[];
+
+//     data.series.forEach(s =>
+//     {
+
+//         // Acrescentado em 14/08/2026
+//         console.log(
+//             "DATASET:",
+//             s.name,
+//             s.values
+//         );        
+
+//         const cor =
+//             s.color ||
+//             getSeriesColor(s.name);
+
+//         const pointStyle =
+//             markerToChartJS(
+//                 s.marker || "circle"
+//             );
+
+//         datasets.push({
+
+//             label:
+//                 s.unit && s.unit !== ""
+//                 ? `${s.name} (${s.unit})`
+//                 : s.name,
+
+//             data: s.values,
+
+//             borderColor: cor,
+//             backgroundColor: cor,
+
+//             fill: false,
+//             tension: 0.2,
+
+//             borderWidth:
+//                 s.satellite ? 2 : 1.5,
+
+//             borderDash:
+//                 s.satellite ? [8,4] : [],
+
+//             pointRadius:
+//                 s.satellite ? 6 : 3,
+
+//             pointHoverRadius:
+//                 s.satellite ? 8 : 5,
+
+//             pointStyle: pointStyle,
+
+//             yAxisID:
+//                 s.name.includes("CH4")
+//                 ? "y2"
+//                 : "y",
+
+//         });
+//     });
+
+//     //
+//     // ORDENA A LEGENDA
+//     //
+//     datasets.sort((a,b)=>
+//     {
+//         let ia = LEGEND_ORDER.indexOf(a.label);
+//         let ib = LEGEND_ORDER.indexOf(b.label);
+
+//         if(ia === -1) ia = 999;
+//         if(ib === -1) ib = 999;
+
+//         return ia - ib;
+//     });
+
+//     console.log("ORDEM FINAL:");
+//     datasets.forEach(d => console.log(d.label));    
+ 
+//     document.getElementById("comparePanel").style.display = "flex";
+
+
+//     // if (window.compareChart) {
+//     //     window.compareChart.destroy();
+//     //     window.compareChart = null;
+//     // }    
+
+//     // Inserido em 14/08/2026
+//     console.log("ANTES DO NEW CHART");    
+
+
+//     window.compareChart =
+//         new Chart(ctx, {
+
+//     // substituído pelo conteúdo acima.        
+//     // window.compareChart =
+//     //     new Chart(canvas,{
+//             type:"line",
+//             data:{
+//                 labels:data.dates,
+//                 datasets:datasets
+//             },
+
+//             options:{
+
+//                 responsive:true,
+
+//                 maintainAspectRatio:false,
+
+//                 interaction:{
+//                     mode:"index",
+//                     intersect:false
+//                 },
+
+//                 plugins:{
+
+//                     title:{
+//                         display:true,
+//                         text:[
+//                             "Qualidade do Ar - Médias Diárias",
+//                             `Estação: ${data.station.codigo} - ${data.station.nome}`,
+//                             `Período: ${formatDateBR(data.start)} a ${formatDateBR(data.end)}`
+//                         ]
+//                     },
+
+//                     legend:{
+//                         position:"top"
+//                     },
+
+//                     tooltip:{
+//                         callbacks:{
+
+//                             title:function(items){
+
+//                                 return formatDateBR(
+//                                     items[0].label
+//                                 );
+//                             },
+
+//                             label:function(context){
+
+//                                 let ds = context.dataset;
+
+//                                 let valor = context.parsed.y;
+
+//                                 if(valor == null)
+//                                     return "";
+
+//                                 let unidade =
+//                                     ds.unit || "";
+
+//                                 return `${ds.label}: ${valor.toFixed(2)} ${unidade}`;
+//                             }
+//                         }
+//                     }
+
+//                 }
+//             }            
+
+
+//         });
+//         // window.activeChart = "compare";
+//         // openComparePanel();
+
+//         window.activeChart = "compare";
+
+//         openComparePanel();
+
+//         observeChartResize(
+//             "comparePanel",
+//             window.compareChart
+//         );
+
+//     }
    
 
 
