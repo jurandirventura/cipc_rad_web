@@ -304,8 +304,9 @@ def compare_series():
 
         goes = request.args.getlist("goes")
 
-        cetesb_gases = request.args.getlist("cetesb")
-        sat_gases = request.args.getlist("sat")
+        ### repetido
+        # cetesb_gases = request.args.getlist("cetesb")
+        # sat_gases = request.args.getlist("sat")
 
         start = request.args.get("start")
         end = request.args.get("end")
@@ -441,6 +442,8 @@ def compare_series():
                 "marker": "circle"
             })
 
+        print(">>> ANTES DO SENTINEL")
+
         # -----------------------------
         # SATÉLITE SENTINEL-5P
         # -----------------------------
@@ -529,6 +532,9 @@ def compare_series():
         print("nome   =", nome_estacao)
         print("================================")        
 
+
+        print(">>> DEPOIS DO SENTINEL")
+        print(">>> ANTES DO GOES")
 
         # -----------------------------
         # SATÉLITE GOES-16 AOD
@@ -761,4 +767,4 @@ print(GOES_INDEX["AOD"])
 
 if __name__ == "__main__":
     #app.run(debug=True)
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=True)

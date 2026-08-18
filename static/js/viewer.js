@@ -373,6 +373,9 @@ async function compareSeries() {
     console.log("URL=", url);
     console.log("ANTES DO FETCH");
 
+    console.log("URL DA API =", url);
+    console.log("ORIGIN =", window.location.origin);
+
 
     // =====================================================
     // FETCH
