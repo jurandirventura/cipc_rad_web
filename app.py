@@ -15,7 +15,10 @@ from cetesb.csv_reader import load_cetesb_data
 from cetesb.stations import load_stations
 
 from satellite.indexer import build_satellite_index
+
 from satellite.timeseries import get_satellite_series
+from satellite.timeseries import get_goes_series_hourly
+
 from satellite.raster_reader import get_satellite_mean
 
 from cetesb_compare import compare_station
@@ -550,9 +553,10 @@ def compare_series():
 
             cfg = GOES_CONFIG[pol]
 
-            goes_dates, goes_values = get_satellite_series(
+            #goes_dates, goes_values = get_satellite_series(
+            goes_dates, goes_values = get_goes_series_hourly(
 
-                sat_index=cfg["index"],
+                goes_index=cfg["index"],
 
                 datas_unicas=datas_unicas,
 
