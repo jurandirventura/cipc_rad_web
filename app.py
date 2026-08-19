@@ -7,6 +7,7 @@ from flask import request
 import pandas as pd
 
 import sys
+import time
 
 sys.path.append("/backend/src/processing")
 
@@ -536,6 +537,8 @@ def compare_series():
         print(">>> DEPOIS DO SENTINEL")
         print(">>> ANTES DO GOES")
 
+        inicio_goes = time.perf_counter()
+
         # -----------------------------
         # SATÉLITE GOES-16 AOD
         # -----------------------------
@@ -562,6 +565,12 @@ def compare_series():
                 scale=cfg.get("scale", 1.0)
 
             )
+
+            fim_goes = time.perf_counter()
+
+            print(
+                f">>> TEMPO GOES: {fim_goes - inicio_goes:.3f} segundos"
+            )            
 
             print("\n======================")
             print("PRODUTO GOES:", pol)
