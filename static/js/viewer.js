@@ -2467,10 +2467,148 @@ function drawCompareChart(data) {
                         ]
                     },
 
+                    // legend: {
+
+                    //     position: "top"
+                    // },
+
+                    // REDESENHA A LEGENDA ***
                     legend: {
 
-                        position: "top"
+                        position: "top",
+
+                        labels: {
+
+                            // -------------------------------------------------
+                            // Mantém apenas UM símbolo por produto
+                            // -------------------------------------------------
+
+                            usePointStyle: true,
+
+                            pointStyleWidth: 28,
+
+                            boxWidth: 28,
+
+                            boxHeight: 10,
+
+                            padding: 10,
+
+                            generateLabels: function(chart) {
+
+                                const datasets =
+                                    chart.data.datasets;
+
+                                return datasets.map(
+                                    (dataset, index) => {
+
+                                        let pointStyle =
+                                            "circle";
+
+                                        let lineDash = [];
+
+                                        let pointRadius = 4;
+
+                                        // -----------------------------------------
+                                        // CETESB
+                                        // -----------------------------------------
+
+                                        if (
+                                            dataset.label.includes(
+                                                "CETESB"
+                                            )
+                                        ) {
+
+                                            pointStyle =
+                                                "circle";
+
+                                            lineDash = [];
+
+                                            pointRadius = 4;
+                                        }
+
+                                        // -----------------------------------------
+                                        // SENTINEL-5P
+                                        // -----------------------------------------
+
+                                        else if (
+                                            dataset.label.includes(
+                                                "AI_SAT"
+                                            )
+                                        ) {
+
+                                            pointStyle =
+                                                "rect";
+
+                                            lineDash = [
+                                                8,
+                                                4
+                                            ];
+
+                                            pointRadius = 5;
+                                        }
+
+                                        // -----------------------------------------
+                                        // GOES
+                                        // -----------------------------------------
+
+                                        else if (
+                                            dataset.label.includes(
+                                                "GOES"
+                                            )
+                                        ) {
+
+                                            pointStyle =
+                                                "circle";
+
+                                            lineDash = [
+                                                8,
+                                                4
+                                            ];
+
+                                            pointRadius = 7;
+                                        }
+
+                                        return {
+
+                                            text:
+                                                dataset.label,
+
+                                            fillStyle:
+                                                dataset.borderColor,
+
+                                            strokeStyle:
+                                                dataset.borderColor,
+
+                                            lineWidth:
+                                                dataset.borderWidth,
+
+                                            lineDash:
+                                                lineDash,
+
+                                            lineDashOffset: 0,
+
+                                            hidden:
+                                                !chart.isDatasetVisible(
+                                                    index
+                                                ),
+
+                                            datasetIndex:
+                                                index,
+
+                                            pointStyle:
+                                                pointStyle,
+
+                                            pointRadius:
+                                                pointRadius
+                                        };
+
+                                    }
+                                );
+                            }
+                        }
                     },
+                    // FIM LEGENDA *** 
+
 
                     tooltip: {
 

@@ -566,7 +566,14 @@ def compare_series():
 
                 delta=0.5,
 
-                scale=cfg.get("scale", 1.0)
+                scale=cfg.get("scale", 1.0),
+
+                # Filtro para GOES (vários arquivos horários. 
+                # Usa 1 arquivo por hora e no intervalo diurno
+                # 06:00 às 18:00 LOCAL
+                # 09:00 às 21:00 UTC
+                #hora_inicio_utc=9,
+                #hora_fim_utc=21
 
             )
 
