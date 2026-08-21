@@ -845,7 +845,44 @@ async function loadCetesbStations(){
 
         }).join("");
 
+// =========================================================
+// TOOLTIP AO PASSAR O MOUSE SOBRE A ESTAÇÃO
+// =========================================================
+
+const tooltipHtml =
+    group.map(st => {
+
+        return `
+            <div>
+                <b>${st.nome}</b><br>
+                Lat: ${Number(st.latitude).toFixed(6)}<br>
+                Lon: ${Number(st.longitude).toFixed(6)}
+            </div>
+        `;
+
+    }).join("<hr style='margin:4px 0;'>");
+
+
+        marker.bindTooltip(
+            tooltipHtml,
+            {
+                direction: "top",
+                offset: [0, -8],
+                sticky: true
+            }
+        );
+
+
+        // =========================================================
+        // POPUP EXISTENTE — MANTÉM O CLIQUE
+        // =========================================================
+
         marker.bindPopup(popup);
+
+
+        // =========================================================
+        // SELEÇÃO DA ESTAÇÃO
+        // =========================================================
 
         marker.on("click", function(){
 
@@ -870,6 +907,34 @@ async function loadCetesbStations(){
             );
 
         });
+
+
+        // antigo
+        // marker.bindPopup(popup);
+
+        // marker.on("click", function(){
+
+        //     if(group.length === 1){
+
+        //         selectedStation = group[0];
+
+        //     } else {
+
+        //         const comDados =
+        //             group.find(
+        //                 st => stationsWithData.has(st.codigo)
+        //             );
+
+        //         selectedStation =
+        //             comDados || group[0];
+        //     }
+
+        //     console.log(
+        //         "Estação selecionada:",
+        //         selectedStation.codigo
+        //     );
+
+        // });
 
     });
 
@@ -2256,6 +2321,916 @@ function openTimelinePanel()
         "block";
 }
 
+// --------------------
+
+// =========================================================
+// CRIA O SÍMBOLO ÚNICO DA LEGENDA
+// Ex.:
+// CETESB      = ●──
+// Sentinel-5P = ■--
+// GOES        = ●--
+// =========================================================
+
+function createLegendSymbol(dataset) {
+
+    const width = 36;
+    const height = 16;
+
+    const canvas =
+        document.createElement("canvas");
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    if (!ctx) {
+        return canvas;
+    }
+
+    const cor =
+        dataset.borderColor ||
+        "#000000";
+
+    const label =
+        String(dataset.label || "")
+            .toUpperCase();
+
+
+    // =====================================================
+    // NORMALIZA CARACTERES SUBSCRITOS
+    // =====================================================
+
+    const labelNormalizado =
+        label
+            .replace(/₀/g, "0")
+            .replace(/₁/g, "1")
+            .replace(/₂/g, "2")
+            .replace(/₃/g, "3")
+            .replace(/₄/g, "4")
+            .replace(/₅/g, "5")
+            .replace(/₆/g, "6")
+            .replace(/₇/g, "7")
+            .replace(/₈/g, "8")
+            .replace(/₉/g, "9");
+
+
+    // =====================================================
+    // IDENTIFICA A ORIGEM
+    //
+    // CETESB  -> linha cheia
+    // SAT/GOES -> linha pontilhada
+    // =====================================================
+
+    const ehGoes =
+        labelNormalizado.includes("GOES");
+
+    const ehSentinel =
+        labelNormalizado.includes("SENTINEL") ||
+        labelNormalizado.includes("AI_SAT") ||
+        labelNormalizado.includes("AI SAT");
+
+    const ehCetesb =
+        labelNormalizado.includes("CETESB");
+
+
+    const linhaPontilhada =
+        ehSentinel ||
+        ehGoes;
+
+
+    // =====================================================
+    // IDENTIFICA O SÍMBOLO PELO PRODUTO/GÁS
+    // =====================================================
+
+    let simbolo = "circle";
+
+
+    // -----------------------------------------------------
+    // MP25 / MP10
+    // ●
+    // -----------------------------------------------------
+
+    if (
+        labelNormalizado.includes("MP25") ||
+        labelNormalizado.includes("MP2.5") ||
+        labelNormalizado.includes("MP10")
+    ) {
+
+        simbolo = "circle";
+
+    }
+
+
+    // -----------------------------------------------------
+    // AI / SENTINEL
+    // ●
+    // -----------------------------------------------------
+
+    else if (
+        labelNormalizado.includes("AI_SAT") ||
+        labelNormalizado.includes("AI SAT") ||
+        labelNormalizado.includes("SENTINEL")
+    ) {
+
+        simbolo = "circle";
+
+    }
+
+
+    // -----------------------------------------------------
+    // GOES AOD
+    // ●
+    // -----------------------------------------------------
+
+    else if (
+        labelNormalizado.includes("GOES")
+    ) {
+
+        simbolo = "circle";
+
+    }
+
+
+    // -----------------------------------------------------
+    // CO
+    // ★ 4 pontas
+    // -----------------------------------------------------
+
+    else if (
+        labelNormalizado.includes("CO")
+    ) {
+
+        simbolo = "star4";
+
+    }
+
+
+    // -----------------------------------------------------
+    // O3
+    // ◆
+    // -----------------------------------------------------
+
+    else if (
+        labelNormalizado.includes("O3")
+    ) {
+
+        simbolo = "star8";
+
+    }
+
+    // -----------------------------------------------------
+    // SO2
+    // ■
+    // -----------------------------------------------------
+
+    else if (
+        labelNormalizado.includes("SO2")
+    ) {
+
+        simbolo = "square";
+
+    }
+
+
+    // -----------------------------------------------------
+    // NO2
+    // ◆
+    // -----------------------------------------------------
+
+    else if (
+        labelNormalizado.includes("NO2")
+    ) {
+
+        simbolo = "diamond";
+
+    }
+
+
+    // -----------------------------------------------------
+    // CH4
+    // ×
+    // -----------------------------------------------------
+
+    else if (
+        labelNormalizado.includes("CH4")
+    ) {
+
+        simbolo = "x";
+
+    }
+
+
+    // =====================================================
+    // LINHA
+    // =====================================================
+
+    const cy =
+        height / 2;
+
+    ctx.beginPath();
+
+    ctx.strokeStyle =
+        cor;
+
+    ctx.lineWidth =
+        ehGoes
+        ? 2
+        : 1.8;
+
+
+    // -----------------------------------------------------
+    // CETESB = linha cheia
+    //
+    // Sentinel / GOES = linha pontilhada
+    // -----------------------------------------------------
+
+    if (linhaPontilhada) {
+
+        ctx.setLineDash([
+            5,
+            3
+        ]);
+
+    }
+    else {
+
+        ctx.setLineDash([]);
+
+    }
+
+
+    ctx.moveTo(
+        2,
+        cy
+    );
+
+    ctx.lineTo(
+        width - 2,
+        cy
+    );
+
+    ctx.stroke();
+
+
+    // =====================================================
+    // SÍMBOLO
+    // =====================================================
+
+    ctx.setLineDash([]);
+
+    const cx =
+        width / 2;
+
+    ctx.fillStyle =
+        cor;
+
+    ctx.strokeStyle =
+        cor;
+
+
+    // =====================================================
+    // ● CÍRCULO
+    // =====================================================
+
+    if (simbolo === "circle") {
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cx,
+            cy,
+            ehGoes ? 5 : 4,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+    }
+
+
+    // =====================================================
+    // ■ QUADRADO — SO2
+    // =====================================================
+
+    else if (simbolo === "square") {
+
+        ctx.fillRect(
+            cx - 4,
+            cy - 4,
+            8,
+            8
+        );
+
+    }
+
+
+    // =====================================================
+    // ◆ LOSANGO — O3 / NO2
+    // =====================================================
+
+    else if (simbolo === "diamond") {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            cx,
+            cy - 5
+        );
+
+        ctx.lineTo(
+            cx + 5,
+            cy
+        );
+
+        ctx.lineTo(
+            cx,
+            cy + 5
+        );
+
+        ctx.lineTo(
+            cx - 5,
+            cy
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+    }
+
+
+    // =====================================================
+    // × CH4
+    // =====================================================
+
+    else if (simbolo === "x") {
+
+        ctx.beginPath();
+
+        ctx.lineWidth = 2;
+
+        const r = 5;
+
+        ctx.moveTo(
+            cx - r,
+            cy - r
+        );
+
+        ctx.lineTo(
+            cx + r,
+            cy + r
+        );
+
+        ctx.moveTo(
+            cx + r,
+            cy - r
+        );
+
+        ctx.lineTo(
+            cx - r,
+            cy + r
+        );
+
+        ctx.stroke();
+
+    }
+
+
+    // =====================================================
+    // ★ CO — ESTRELA DE 4 PONTAS
+    // =====================================================
+
+    else if (simbolo === "star4") {
+
+        const outerRadius = 6;
+
+        const innerRadius = 2;
+
+        const spikes = 4;
+
+        let rotation =
+            -Math.PI / 2;
+
+        ctx.beginPath();
+
+        for (
+            let i = 0;
+            i < spikes * 2;
+            i++
+        ) {
+
+            const radius =
+                i % 2 === 0
+                ? outerRadius
+                : innerRadius;
+
+            const x =
+                cx +
+                Math.cos(rotation) *
+                radius;
+
+            const y =
+                cy +
+                Math.sin(rotation) *
+                radius;
+
+            if (i === 0) {
+
+                ctx.moveTo(
+                    x,
+                    y
+                );
+
+            }
+            else {
+
+                ctx.lineTo(
+                    x,
+                    y
+                );
+
+            }
+
+            rotation +=
+                Math.PI / spikes;
+        }
+
+        ctx.closePath();
+
+        ctx.fill();
+
+    }
+
+    // =====================================================
+    // ✳ O3 — ESTRELA DE 8 PONTAS
+    // =====================================================
+
+    else if (simbolo === "star8") {
+
+        const spikes = 8;
+
+        const outerRadius = 5.5;
+
+        const innerRadius = 2.3;
+
+        let rotation =
+            -Math.PI / 2;
+
+        ctx.beginPath();
+
+        for (
+            let i = 0;
+            i < spikes * 2;
+            i++
+        ) {
+
+            const radius =
+                i % 2 === 0
+                ? outerRadius
+                : innerRadius;
+
+            const x =
+                cx +
+                Math.cos(rotation) *
+                radius;
+
+            const y =
+                cy +
+                Math.sin(rotation) *
+                radius;
+
+            if (i === 0) {
+
+                ctx.moveTo(
+                    x,
+                    y
+                );
+
+            }
+            else {
+
+                ctx.lineTo(
+                    x,
+                    y
+                );
+
+            }
+
+            rotation +=
+                Math.PI / spikes;
+        }
+
+        ctx.closePath();
+
+        ctx.fill();
+
+    }    
+
+    return canvas;
+}
+
+
+// function createLegendSymbol(dataset) {
+
+//     const width = 36;
+//     const height = 16;
+
+//     const canvas =
+//         document.createElement("canvas");
+
+//     canvas.width = width;
+//     canvas.height = height;
+
+//     const ctx =
+//         canvas.getContext("2d");
+
+//     if (!ctx) {
+//         return canvas;
+//     }
+
+//     const cor =
+//         dataset.borderColor ||
+//         "#000000";
+
+//     const label =
+//         String(dataset.label || "").toUpperCase();
+
+
+//     // =====================================================
+//     // IDENTIFICA O PRODUTO
+//     // =====================================================
+
+//     const ehGoes =
+//         label.includes("GOES");
+
+//     const ehSentinel =
+//         label.includes("SENTINEL") ||
+//         label.includes("_SAT") ||
+//         label.includes("AI_SAT");
+
+//     const ehCetesb =
+//         label.includes("CETESB");
+
+
+//     // =====================================================
+//     // TIPO DE LINHA
+//     // =====================================================
+
+//     const linhaPontilhada =
+//         ehSentinel ||
+//         ehGoes;
+
+
+//     // =====================================================
+//     // IDENTIFICA O GÁS
+//     // =====================================================
+
+//     let simbolo = "circle";
+
+
+//     if (label.includes("CH4")) {
+
+//         simbolo = "x";
+
+//     }
+//     else if (label.includes("SO2")) {
+
+//         simbolo = "diamond";
+
+//     }
+//     else if (label.includes("CO")) {
+
+//         simbolo = "star";
+
+//     }
+//     else if (label.includes("O3")) {
+
+//         simbolo = "star8";
+
+//     }
+//     else if (label.includes("NO2")) {
+
+//         simbolo = "diamond";
+
+//     }
+//     else if (
+//         label.includes("MP10") ||
+//         label.includes("MP2.5") ||
+//         label.includes("MP25")
+//     ) {
+
+//         simbolo = "circle";
+
+//     }
+
+
+//     // =====================================================
+//     // LINHA
+//     // =====================================================
+
+//     const cy =
+//         height / 2;
+
+//     ctx.beginPath();
+
+//     ctx.strokeStyle =
+//         cor;
+
+//     ctx.lineWidth =
+//         ehGoes
+//         ? 2
+//         : 1.8;
+
+//     if (linhaPontilhada) {
+
+//         ctx.setLineDash([
+//             5,
+//             3
+//         ]);
+
+//     }
+//     else {
+
+//         ctx.setLineDash([]);
+
+//     }
+
+//     ctx.moveTo(
+//         2,
+//         cy
+//     );
+
+//     ctx.lineTo(
+//         width - 2,
+//         cy
+//     );
+
+//     ctx.stroke();
+
+
+//     // =====================================================
+//     // SÍMBOLO
+//     // =====================================================
+
+//     ctx.setLineDash([]);
+
+//     const cx =
+//         width / 2;
+
+//     ctx.fillStyle =
+//         cor;
+
+//     ctx.strokeStyle =
+//         cor;
+
+
+//     // =====================================================
+//     // CÍRCULO
+//     // =====================================================
+
+//     if (simbolo === "circle") {
+
+//         ctx.beginPath();
+
+//         ctx.arc(
+//             cx,
+//             cy,
+//             ehGoes ? 5 : 4,
+//             0,
+//             Math.PI * 2
+//         );
+
+//         ctx.fill();
+
+//     }
+
+
+//     // =====================================================
+//     // QUADRADO
+//     // =====================================================
+
+//     else if (simbolo === "square") {
+
+//         ctx.fillRect(
+//             cx - 4,
+//             cy - 4,
+//             8,
+//             8
+//         );
+
+//     }
+
+
+//     // =====================================================
+//     // LOSANGO
+//     // =====================================================
+
+//     else if (simbolo === "diamond") {
+
+//         ctx.beginPath();
+
+//         ctx.moveTo(
+//             cx,
+//             cy - 5
+//         );
+
+//         ctx.lineTo(
+//             cx + 5,
+//             cy
+//         );
+
+//         ctx.lineTo(
+//             cx,
+//             cy + 5
+//         );
+
+//         ctx.lineTo(
+//             cx - 5,
+//             cy
+//         );
+
+//         ctx.closePath();
+
+//         ctx.fill();
+
+//     }
+
+
+//     // =====================================================
+//     // X — CH4
+//     // =====================================================
+
+//     else if (simbolo === "x") {
+
+//         ctx.beginPath();
+
+//         ctx.lineWidth = 2;
+
+//         const r = 5;
+
+//         ctx.moveTo(
+//             cx - r,
+//             cy - r
+//         );
+
+//         ctx.lineTo(
+//             cx + r,
+//             cy + r
+//         );
+
+//         ctx.moveTo(
+//             cx + r,
+//             cy - r
+//         );
+
+//         ctx.lineTo(
+//             cx - r,
+//             cy + r
+//         );
+
+//         ctx.stroke();
+
+//     }
+
+
+//     // =====================================================
+//     // ESTRELA — CO
+//     // =====================================================
+
+//     else if (simbolo === "star") {
+
+//         const spikes = 5;
+
+//         const outerRadius = 5;
+
+//         const innerRadius = 2.2;
+
+//         let rotation =
+//             -Math.PI / 2;
+
+//         ctx.beginPath();
+
+//         for (
+//             let i = 0;
+//             i < spikes * 2;
+//             i++
+//         ) {
+
+//             const radius =
+//                 i % 2 === 0
+//                 ? outerRadius
+//                 : innerRadius;
+
+//             const x =
+//                 cx +
+//                 Math.cos(rotation) *
+//                 radius;
+
+//             const y =
+//                 cy +
+//                 Math.sin(rotation) *
+//                 radius;
+
+//             if (i === 0) {
+
+//                 ctx.moveTo(
+//                     x,
+//                     y
+//                 );
+
+//             }
+//             else {
+
+//                 ctx.lineTo(
+//                     x,
+//                     y
+//                 );
+
+//             }
+
+//             rotation +=
+//                 Math.PI / spikes;
+//         }
+
+//         ctx.closePath();
+
+//         ctx.fill();
+
+//     }
+
+
+//     // =====================================================
+//     // ESTRELA DE 8 PONTAS — O3
+//     // =====================================================
+
+//     else if (simbolo === "star8") {
+
+//         const spikes = 8;
+
+//         const outerRadius = 5.5;
+
+//         const innerRadius = 2.5;
+
+//         let rotation =
+//             -Math.PI / 2;
+
+//         ctx.beginPath();
+
+//         for (
+//             let i = 0;
+//             i < spikes * 2;
+//             i++
+//         ) {
+
+//             const radius =
+//                 i % 2 === 0
+//                 ? outerRadius
+//                 : innerRadius;
+
+//             const x =
+//                 cx +
+//                 Math.cos(rotation) *
+//                 radius;
+
+//             const y =
+//                 cy +
+//                 Math.sin(rotation) *
+//                 radius;
+
+//             if (i === 0) {
+
+//                 ctx.moveTo(
+//                     x,
+//                     y
+//                 );
+
+//             }
+//             else {
+
+//                 ctx.lineTo(
+//                     x,
+//                     y
+//                 );
+
+//             }
+
+//             rotation +=
+//                 Math.PI / spikes;
+//         }
+
+//         ctx.closePath();
+
+//         ctx.fill();
+
+//     }
+
+
+//     return canvas;
+// }
+
 
 //---------------------
 
@@ -2467,29 +3442,20 @@ function drawCompareChart(data) {
                         ]
                     },
 
-                    // legend: {
 
-                    //     position: "top"
-                    // },
-
-                    // REDESENHA A LEGENDA ***
                     legend: {
 
                         position: "top",
 
                         labels: {
 
-                            // -------------------------------------------------
-                            // Mantém apenas UM símbolo por produto
-                            // -------------------------------------------------
-
                             usePointStyle: true,
 
-                            pointStyleWidth: 28,
+                            pointStyleWidth: 36,
 
-                            boxWidth: 28,
+                            boxWidth: 36,
 
-                            boxHeight: 10,
+                            boxHeight: 16,
 
                             padding: 10,
 
@@ -2500,73 +3466,6 @@ function drawCompareChart(data) {
 
                                 return datasets.map(
                                     (dataset, index) => {
-
-                                        let pointStyle =
-                                            "circle";
-
-                                        let lineDash = [];
-
-                                        let pointRadius = 4;
-
-                                        // -----------------------------------------
-                                        // CETESB
-                                        // -----------------------------------------
-
-                                        if (
-                                            dataset.label.includes(
-                                                "CETESB"
-                                            )
-                                        ) {
-
-                                            pointStyle =
-                                                "circle";
-
-                                            lineDash = [];
-
-                                            pointRadius = 4;
-                                        }
-
-                                        // -----------------------------------------
-                                        // SENTINEL-5P
-                                        // -----------------------------------------
-
-                                        else if (
-                                            dataset.label.includes(
-                                                "AI_SAT"
-                                            )
-                                        ) {
-
-                                            pointStyle =
-                                                "rect";
-
-                                            lineDash = [
-                                                8,
-                                                4
-                                            ];
-
-                                            pointRadius = 5;
-                                        }
-
-                                        // -----------------------------------------
-                                        // GOES
-                                        // -----------------------------------------
-
-                                        else if (
-                                            dataset.label.includes(
-                                                "GOES"
-                                            )
-                                        ) {
-
-                                            pointStyle =
-                                                "circle";
-
-                                            lineDash = [
-                                                8,
-                                                4
-                                            ];
-
-                                            pointRadius = 7;
-                                        }
 
                                         return {
 
@@ -2582,11 +3481,6 @@ function drawCompareChart(data) {
                                             lineWidth:
                                                 dataset.borderWidth,
 
-                                            lineDash:
-                                                lineDash,
-
-                                            lineDashOffset: 0,
-
                                             hidden:
                                                 !chart.isDatasetVisible(
                                                     index
@@ -2596,10 +3490,9 @@ function drawCompareChart(data) {
                                                 index,
 
                                             pointStyle:
-                                                pointStyle,
-
-                                            pointRadius:
-                                                pointRadius
+                                                createLegendSymbol(
+                                                    dataset
+                                                )
                                         };
 
                                     }
@@ -2607,6 +3500,231 @@ function drawCompareChart(data) {
                             }
                         }
                     },
+
+
+                    // funciona --- 
+                    // legend: {
+
+                    //     position: "top",
+
+                    //     labels: {
+
+                    //         // -------------------------------------------------
+                    //         // Cada produto terá UM ÚNICO símbolo combinado:
+                    //         //
+                    //         // CETESB      ●──
+                    //         // Sentinel    ■--
+                    //         // GOES        ●--
+                    //         // -------------------------------------------------
+
+                    //         usePointStyle: true,
+
+                    //         pointStyleWidth: 32,
+
+                    //         boxWidth: 32,
+
+                    //         boxHeight: 12,
+
+                    //         padding: 10,
+
+                    //         generateLabels: function(chart) {
+
+                    //             const datasets =
+                    //                 chart.data.datasets;
+
+                    //             return datasets.map(
+                    //                 (dataset, index) => {
+
+                    //                     return {
+
+                    //                         text:
+                    //                             dataset.label,
+
+                    //                         fillStyle:
+                    //                             dataset.borderColor,
+
+                    //                         strokeStyle:
+                    //                             dataset.borderColor,
+
+                    //                         lineWidth:
+                    //                             dataset.borderWidth,
+
+                    //                         hidden:
+                    //                             !chart.isDatasetVisible(
+                    //                                 index
+                    //                             ),
+
+                    //                         datasetIndex:
+                    //                             index,
+
+                    //                         // ---------------------------------
+                    //                         // O ponto da legenda agora é uma
+                    //                         // imagem Canvas contendo:
+                    //                         //
+                    //                         // ●──
+                    //                         // ■--
+                    //                         // ●--
+                    //                         // ---------------------------------
+
+                    //                         pointStyle:
+                    //                             createLegendSymbol(
+                    //                                 dataset
+                    //                             )
+                    //                     };
+
+                    //                 }
+                    //             );
+                    //         }
+                    //     }
+                    // },
+
+
+                    // LEGENDA ANTIGA
+                    // legend: {
+
+                    //     position: "top"
+                    // },
+
+                    // REDESENHA A LEGENDA ***
+
+
+                    // legend: {
+
+                    //     position: "top",
+
+                    //     labels: {
+
+                    //         // -------------------------------------------------
+                    //         // Mantém apenas UM símbolo por produto
+                    //         // -------------------------------------------------
+
+                    //         usePointStyle: true,
+
+                    //         pointStyleWidth: 28,
+
+                    //         boxWidth: 28,
+
+                    //         boxHeight: 10,
+
+                    //         padding: 10,
+
+                    //         generateLabels: function(chart) {
+
+                    //             const datasets =
+                    //                 chart.data.datasets;
+
+                    //             return datasets.map(
+                    //                 (dataset, index) => {
+
+                    //                     let pointStyle =
+                    //                         "circle";
+
+                    //                     let lineDash = [];
+
+                    //                     let pointRadius = 4;
+
+                    //                     // -----------------------------------------
+                    //                     // CETESB
+                    //                     // -----------------------------------------
+
+                    //                     if (
+                    //                         dataset.label.includes(
+                    //                             "CETESB"
+                    //                         )
+                    //                     ) {
+
+                    //                         pointStyle =
+                    //                             "circle";
+
+                    //                         lineDash = [];
+
+                    //                         pointRadius = 4;
+                    //                     }
+
+                    //                     // -----------------------------------------
+                    //                     // SENTINEL-5P
+                    //                     // -----------------------------------------
+
+                    //                     else if (
+                    //                         dataset.label.includes(
+                    //                             "AI_SAT"
+                    //                         )
+                    //                     ) {
+
+                    //                         pointStyle =
+                    //                             "rect";
+
+                    //                         lineDash = [
+                    //                             8,
+                    //                             4
+                    //                         ];
+
+                    //                         pointRadius = 5;
+                    //                     }
+
+                    //                     // -----------------------------------------
+                    //                     // GOES
+                    //                     // -----------------------------------------
+
+                    //                     else if (
+                    //                         dataset.label.includes(
+                    //                             "GOES"
+                    //                         )
+                    //                     ) {
+
+                    //                         pointStyle =
+                    //                             "circle";
+
+                    //                         lineDash = [
+                    //                             8,
+                    //                             4
+                    //                         ];
+
+                    //                         pointRadius = 7;
+                    //                     }
+
+                    //                     return {
+
+                    //                         text:
+                    //                             dataset.label,
+
+                    //                         fillStyle:
+                    //                             dataset.borderColor,
+
+                    //                         strokeStyle:
+                    //                             dataset.borderColor,
+
+                    //                         lineWidth:
+                    //                             dataset.borderWidth,
+
+                    //                         lineDash:
+                    //                             lineDash,
+
+                    //                         lineDashOffset: 0,
+
+                    //                         hidden:
+                    //                             !chart.isDatasetVisible(
+                    //                                 index
+                    //                             ),
+
+                    //                         datasetIndex:
+                    //                             index,
+
+                    //                         pointStyle:
+                    //                             pointStyle,
+
+                    //                         pointRadius:
+                    //                             pointRadius
+                    //                     };
+
+                    //                 }
+                    //             );
+                    //         }
+                    //     }
+                    // },
+
+
+
                     // FIM LEGENDA *** 
 
 
