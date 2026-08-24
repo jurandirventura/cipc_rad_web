@@ -2404,122 +2404,126 @@ function createLegendSymbol(dataset) {
     // IDENTIFICA O SÍMBOLO PELO PRODUTO/GÁS
     // =====================================================
 
-    let simbolo = "circle";
+    const simbolo =
+        getProductSymbol(labelNormalizado);
 
 
-    // -----------------------------------------------------
-    // MP25 / MP10
-    // ●
-    // -----------------------------------------------------
-
-    if (
-        labelNormalizado.includes("MP25") ||
-        labelNormalizado.includes("MP2.5") ||
-        labelNormalizado.includes("MP10")
-    ) {
-
-        simbolo = "circle";
-
-    }
+    // let simbolo = "circle";
 
 
-    // -----------------------------------------------------
-    // AI / SENTINEL
-    // ●
-    // -----------------------------------------------------
+    // // -----------------------------------------------------
+    // // MP25 / MP10
+    // // ●
+    // // -----------------------------------------------------
 
-    else if (
-        labelNormalizado.includes("AI_SAT") ||
-        labelNormalizado.includes("AI SAT") ||
-        labelNormalizado.includes("SENTINEL")
-    ) {
+    // if (
+    //     labelNormalizado.includes("MP25") ||
+    //     labelNormalizado.includes("MP2.5") ||
+    //     labelNormalizado.includes("MP10")
+    // ) {
 
-        simbolo = "circle";
+    //     simbolo = "circle";
 
-    }
-
-
-    // -----------------------------------------------------
-    // GOES AOD
-    // ●
-    // -----------------------------------------------------
-
-    else if (
-        labelNormalizado.includes("GOES")
-    ) {
-
-        simbolo = "circle";
-
-    }
+    // }
 
 
-    // -----------------------------------------------------
-    // CO
-    // ★ 4 pontas
-    // -----------------------------------------------------
+    // // -----------------------------------------------------
+    // // AI / SENTINEL
+    // // ●
+    // // -----------------------------------------------------
 
-    else if (
-        labelNormalizado.includes("CO")
-    ) {
+    // else if (
+    //     labelNormalizado.includes("AI_SAT") ||
+    //     labelNormalizado.includes("AI SAT") ||
+    //     labelNormalizado.includes("SENTINEL")
+    // ) {
 
-        simbolo = "star4";
+    //     simbolo = "circle";
 
-    }
-
-
-    // -----------------------------------------------------
-    // O3
-    // ◆
-    // -----------------------------------------------------
-
-    else if (
-        labelNormalizado.includes("O3")
-    ) {
-
-        simbolo = "star8";
-
-    }
-
-    // -----------------------------------------------------
-    // SO2
-    // ■
-    // -----------------------------------------------------
-
-    else if (
-        labelNormalizado.includes("SO2")
-    ) {
-
-        simbolo = "square";
-
-    }
+    // }
 
 
-    // -----------------------------------------------------
-    // NO2
-    // ◆
-    // -----------------------------------------------------
+    // // -----------------------------------------------------
+    // // GOES AOD
+    // // ●
+    // // -----------------------------------------------------
 
-    else if (
-        labelNormalizado.includes("NO2")
-    ) {
+    // else if (
+    //     labelNormalizado.includes("GOES")
+    // ) {
 
-        simbolo = "diamond";
+    //     simbolo = "square";
 
-    }
+    // }
 
 
-    // -----------------------------------------------------
-    // CH4
-    // ×
-    // -----------------------------------------------------
+    // // -----------------------------------------------------
+    // // CO
+    // // ★ 4 pontas
+    // // -----------------------------------------------------
 
-    else if (
-        labelNormalizado.includes("CH4")
-    ) {
+    // else if (
+    //     labelNormalizado.includes("CO")
+    // ) {
 
-        simbolo = "x";
+    //     simbolo = "star4";
 
-    }
+    // }
+
+
+    // // -----------------------------------------------------
+    // // O3
+    // // ◆
+    // // -----------------------------------------------------
+
+    // else if (
+    //     labelNormalizado.includes("O3")
+    // ) {
+
+    //     simbolo = "star8";
+
+    // }
+
+    // // -----------------------------------------------------
+    // // SO2
+    // // ■
+    // // -----------------------------------------------------
+
+    // else if (
+    //     labelNormalizado.includes("SO2")
+    // ) {
+
+    //     simbolo = "square";
+
+    // }
+
+
+    // // -----------------------------------------------------
+    // // NO2
+    // // ◆
+    // // -----------------------------------------------------
+
+    // else if (
+    //     labelNormalizado.includes("NO2")
+    // ) {
+
+    //     simbolo = "diamond";
+
+    // }
+
+
+    // // -----------------------------------------------------
+    // // CH4
+    // // ×
+    // // -----------------------------------------------------
+
+    // else if (
+    //     labelNormalizado.includes("CH4")
+    // ) {
+
+    //     simbolo = "x";
+
+    // }
 
 
     // =====================================================
@@ -2628,10 +2632,44 @@ function createLegendSymbol(dataset) {
 
 
     // =====================================================
-    // ◆ LOSANGO — O3 / NO2
+    // ◆ LOSANGO — O3 
     // =====================================================
 
     else if (simbolo === "diamond") {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            cx,
+            cy - 5
+        );
+
+        ctx.lineTo(
+            cx + 5,
+            cy
+        );
+
+        ctx.lineTo(
+            cx,
+            cy + 5
+        );
+
+        ctx.lineTo(
+            cx - 5,
+            cy
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+    }
+
+   // =====================================================
+    // ◆ TRIANGLE — NO2
+    // =====================================================
+
+    else if (simbolo === "triangle") {
 
         ctx.beginPath();
 
@@ -2831,6 +2869,401 @@ function createLegendSymbol(dataset) {
 
     return canvas;
 }
+
+
+
+
+// ---------------------
+
+function getProductSymbol(label) {
+
+    const nome =
+        String(label || "")
+            .toUpperCase()
+            .replace(/₀/g, "0")
+            .replace(/₁/g, "1")
+            .replace(/₂/g, "2")
+            .replace(/₃/g, "3")
+            .replace(/₄/g, "4")
+            .replace(/₅/g, "5")
+            .replace(/₆/g, "6")
+            .replace(/₇/g, "7")
+            .replace(/₈/g, "8")
+            .replace(/₉/g, "9");
+
+
+    // -----------------------------------------------------
+    // MP25 / MP10
+    // -----------------------------------------------------
+
+    if (
+        nome.includes("MP25") ||
+        nome.includes("MP2.5") ||
+        nome.includes("MP10")
+    ) {
+
+        return "circle";
+    }
+
+
+    // -----------------------------------------------------
+    // AI / SENTINEL-5P
+    // -----------------------------------------------------
+
+    if (
+        nome.includes("AI_SAT") ||
+        nome.includes("AI SAT") ||
+        nome.includes("SENTINEL")
+    ) {
+
+        return "circle";
+    }
+
+
+    // -----------------------------------------------------
+    // GOES AOD
+    // -----------------------------------------------------
+
+    if (nome.includes("GOES")) {
+
+        return "circle";
+    }
+
+
+    // -----------------------------------------------------
+    // CO
+    // estrela de 4 pontas
+    // -----------------------------------------------------
+
+    if (nome.includes("CO")) {
+
+        return "star4";
+    }
+
+
+    // -----------------------------------------------------
+    // O3
+    // estrela de 8 pontas
+    // -----------------------------------------------------
+
+    if (nome.includes("O3")) {
+
+        return "star8";
+    }
+
+
+    // -----------------------------------------------------
+    // SO2
+    // losango
+    // -----------------------------------------------------
+
+    if (nome.includes("SO2")) {
+
+        return "diamond";
+    }
+
+
+    // -----------------------------------------------------
+    // NO2
+    // triângulo
+    // -----------------------------------------------------
+
+    if (nome.includes("NO2")) {
+
+        return "triangle";
+    }
+
+
+    // -----------------------------------------------------
+    // CH4
+    // X
+    // -----------------------------------------------------
+
+    if (nome.includes("CH4")) {
+
+        return "x";
+    }
+
+
+    // -----------------------------------------------------
+    // padrão
+    // -----------------------------------------------------
+
+    return "circle";
+}
+
+//----------------------
+
+function createPointSymbol(
+    simbolo,
+    cor
+) {
+
+    const size = 18;
+
+    const canvas =
+        document.createElement("canvas");
+
+    canvas.width = size;
+    canvas.height = size;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    if (!ctx) {
+        return canvas;
+    }
+
+    const cx = size / 2;
+    const cy = size / 2;
+
+    ctx.fillStyle = cor;
+    ctx.strokeStyle = cor;
+
+    // =====================================================
+    // CÍRCULO
+    // =====================================================
+
+    if (simbolo === "circle") {
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cx,
+            cy,
+            4.5,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    }
+
+
+    // =====================================================
+    // LOSANGO
+    // =====================================================
+
+    else if (simbolo === "diamond") {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            cx,
+            cy - 6
+        );
+
+        ctx.lineTo(
+            cx + 6,
+            cy
+        );
+
+        ctx.lineTo(
+            cx,
+            cy + 6
+        );
+
+        ctx.lineTo(
+            cx - 6,
+            cy
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+    }
+
+
+    // =====================================================
+    // TRIÂNGULO
+    // =====================================================
+
+    else if (simbolo === "triangle") {
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            cx,
+            cy - 6
+        );
+
+        ctx.lineTo(
+            cx + 6,
+            cy + 5
+        );
+
+        ctx.lineTo(
+            cx - 6,
+            cy + 5
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+    }
+
+
+    // =====================================================
+    // X
+    // =====================================================
+
+    else if (simbolo === "x") {
+
+        ctx.beginPath();
+
+        ctx.lineWidth = 2.5;
+
+        const r = 5;
+
+        ctx.moveTo(
+            cx - r,
+            cy - r
+        );
+
+        ctx.lineTo(
+            cx + r,
+            cy + r
+        );
+
+        ctx.moveTo(
+            cx + r,
+            cy - r
+        );
+
+        ctx.lineTo(
+            cx - r,
+            cy + r
+        );
+
+        ctx.stroke();
+    }
+
+
+    // =====================================================
+    // ESTRELA 4 PONTAS
+    // =====================================================
+
+    else if (simbolo === "star4") {
+
+        const spikes = 4;
+
+        const outerRadius = 6;
+
+        const innerRadius = 2;
+
+        let rotation =
+            -Math.PI / 2;
+
+        ctx.beginPath();
+
+        for (
+            let i = 0;
+            i < spikes * 2;
+            i++
+        ) {
+
+            const radius =
+                i % 2 === 0
+                ? outerRadius
+                : innerRadius;
+
+            const x =
+                cx +
+                Math.cos(rotation) *
+                radius;
+
+            const y =
+                cy +
+                Math.sin(rotation) *
+                radius;
+
+            if (i === 0) {
+
+                ctx.moveTo(x, y);
+
+            }
+            else {
+
+                ctx.lineTo(x, y);
+
+            }
+
+            rotation +=
+                Math.PI / spikes;
+        }
+
+        ctx.closePath();
+
+        ctx.fill();
+    }
+
+
+    // =====================================================
+    // ESTRELA 8 PONTAS
+    // =====================================================
+
+    else if (simbolo === "star8") {
+
+        const spikes = 8;
+
+        const outerRadius = 6;
+
+        const innerRadius = 2.5;
+
+        let rotation =
+            -Math.PI / 2;
+
+        ctx.beginPath();
+
+        for (
+            let i = 0;
+            i < spikes * 2;
+            i++
+        ) {
+
+            const radius =
+                i % 2 === 0
+                ? outerRadius
+                : innerRadius;
+
+            const x =
+                cx +
+                Math.cos(rotation) *
+                radius;
+
+            const y =
+                cy +
+                Math.sin(rotation) *
+                radius;
+
+            if (i === 0) {
+
+                ctx.moveTo(x, y);
+
+            }
+            else {
+
+                ctx.lineTo(x, y);
+
+            }
+
+            rotation +=
+                Math.PI / spikes;
+        }
+
+        ctx.closePath();
+
+        ctx.fill();
+    }
+
+
+    return canvas;
+}
+
+//----------------------
+
+
+
 
 
 // function createLegendSymbol(dataset) {
@@ -3311,10 +3744,21 @@ function drawCompareChart(data) {
             getSeriesColor(s.name);
 
 
+        // const pointStyle =
+        //     markerToChartJS(
+        //         s.marker || "circle"
+        //     );
+
+        const simbolo =
+            getProductSymbol(s.name);
+
         const pointStyle =
-            markerToChartJS(
-                s.marker || "circle"
+            createPointSymbol(
+                simbolo,
+                cor
             );
+
+
 
 
         datasets.push({
