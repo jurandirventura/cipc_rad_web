@@ -2669,28 +2669,61 @@ function createLegendSymbol(dataset) {
     // ◆ TRIANGLE — NO2
     // =====================================================
 
+    // else if (simbolo === "triangle") {
+
+    //     ctx.beginPath();
+
+    //     ctx.moveTo(
+    //         cx,
+    //         cy - 5
+    //     );
+
+    //     ctx.lineTo(
+    //         cx + 5,
+    //         cy
+    //     );
+
+    //     ctx.lineTo(
+    //         cx,
+    //         cy + 5
+    //     );
+
+    //     ctx.lineTo(
+    //         cx - 5,
+    //         cy
+    //     );
+
+    //     ctx.closePath();
+
+    //     ctx.fill();
+
+    // }
+
+
+    // =====================================================
+    // ▲ TRIANGLE — NO2
+    // =====================================================
+
     else if (simbolo === "triangle") {
 
         ctx.beginPath();
 
+        // Ponta superior
         ctx.moveTo(
             cx,
             cy - 5
         );
 
+        // Ponta inferior direita
         ctx.lineTo(
             cx + 5,
-            cy
+            cy + 4
         );
 
-        ctx.lineTo(
-            cx,
-            cy + 5
-        );
-
+        // Ponta inferior esquerda
         ctx.lineTo(
             cx - 5,
-            cy
+            cy + 4
         );
 
         ctx.closePath();
@@ -2698,7 +2731,6 @@ function createLegendSymbol(dataset) {
         ctx.fill();
 
     }
-
 
     // =====================================================
     // × CH4
