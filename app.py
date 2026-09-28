@@ -308,6 +308,8 @@ def compare_series():
 
         goes = request.args.getlist("goes")
 
+        s3b = request.args.getlist("s3b")
+
         ### repetido
         # cetesb_gases = request.args.getlist("cetesb")
         # sat_gases = request.args.getlist("sat")
@@ -319,6 +321,7 @@ def compare_series():
         print("cetesb=", cetesb_gases)
         print("sat=", sat_gases)
         print("GOES:", goes)
+        print("Sentinel-3B:", s3b)
 
         data_inicio = pd.to_datetime(start)
         data_fim = pd.to_datetime(end)
@@ -537,7 +540,59 @@ def compare_series():
         print("================================")        
 
 
-        print(">>> DEPOIS DO SENTINEL")
+        print(">>> DEPOIS DO SENTINEL-5P")
+        print(">>> ANTES DO SENTINEL-3B")
+
+        # -----------------------------
+        # SATÉLITE SENTINEL-3B AOD 550 nm
+        # -----------------------------
+        for pol in s3b:
+
+            if pol not in S3B_CONFIG:
+                continue
+
+            cfg = S3B_CONFIG[pol]
+
+            s3b_dates, s3b_values = get_satellite_series(
+                sat_index=cfg["index"],
+                datas_unicas=datas_unicas,
+                lat_station=lat_station,
+                lon_station=lon_station,
+                delta=0.5,
+                scale=cfg.get("scale", 1.0)
+            )
+
+            print("\n======================")
+            print("PRODUTO SENTINEL-3B:", pol)
+            print("INDEX DIR:", cfg["index"])
+            print("DATAS:", s3b_dates)
+            print("VALORES:", s3b_values)
+
+            if s3b_values:
+                print("MIN:", min(s3b_values))
+                print("MAX:", max(s3b_values))
+            print("======================")
+
+            s3b_map = {}
+
+            for d, v in zip(s3b_dates, s3b_values):
+                s3b_map[pd.Timestamp(d).strftime("%Y-%m-%d")] = float(v)
+
+            valores = []
+
+            for d in dates:
+                valores.append(s3b_map.get(d, None))
+
+            series.append({
+                "name": cfg["label"],
+                "values": valores,
+                "color": cfg["color"],
+                "marker": cfg["marker"],
+                "unit": cfg.get("unit", ""),
+                "satellite": True
+            })
+
+        print(">>> DEPOIS DO SENTINEL-3B")
         print(">>> ANTES DO GOES")
 
         inicio_goes = time.perf_counter()
@@ -744,6 +799,37 @@ CETESB_CONFIG = {
     }
 }
 
+# ---------------------------------------------------
+# Sentinel-3B - AOD 550 nm
+# ---------------------------------------------------
+S3B_INDEX = {
+
+    "AOD": build_satellite_index(
+        "/data/geotiff/AOD_550_Merged_OceanLand"
+    )
+
+}
+
+S3B_CONFIG = {
+
+    "AOD": {
+        "index": S3B_INDEX["AOD"],
+        "label": "Sentinel-3B AOD 550 nm",
+        "color": "#008B8B",
+        "marker": "circle",
+        "unit": "AOD",
+        "scale": 1.0
+    }
+}
+
+print("\n======================")
+print("SENTINEL-3B INDEX")
+print("Dias encontrados:", len(S3B_INDEX["AOD"]))
+for k, v in list(S3B_INDEX["AOD"].items())[:5]:
+    print(k, "->", len(v), "arquivo(s)")
+print("======================")
+
+
 GOES_INDEX = {
 
     "AOD": build_satellite_index(
@@ -788,3 +874,809 @@ print(GOES_INDEX["AOD"])
 if __name__ == "__main__":
     #app.run(debug=True)
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Funciona para Sentinel 5P, CETESB e GOES-16
+# from flask import Flask, render_template, jsonify, send_file
+# import os
+# import re
+# import json 
+
+# from flask import request
+# import pandas as pd
+
+# import sys
+# import time
+
+# sys.path.append("/backend/src/processing")
+
+# from cetesb.csv_reader import load_cetesb_data
+# from cetesb.stations import load_stations
+
+# from satellite.indexer import build_satellite_index
+
+# from satellite.timeseries import get_satellite_series
+# from satellite.timeseries import get_goes_series_hourly
+
+# from satellite.raster_reader import get_satellite_mean
+
+# from cetesb_compare import compare_station
+
+# from config import create_sat_config
+
+# app = Flask(__name__)
+
+# #DATA_DIR = "/home/jurandir/cipc_output/geotiff"
+
+# # Retirar o comentário para DOCKER
+# DATA_DIR = "/data/geotiff"
+
+# # (mapeado) CETESB_JSON = "/home/jurandir/cipc_data/cetesb/lista_estacoes.json"
+# CETESB_JSON = "/data/cetesb/lista_estacoes.json"
+
+# # Dados CSV CETESB
+# CETESB_CSV = "/data/cetesb/media_diaria_csvs"
+
+# # ---------------------------------------------------
+# @app.route("/")
+# def index():
+#     return render_template("index.html")
+
+
+# # ---------------------------------------------------
+# @app.route("/api/produtos")
+# def produtos():
+
+#     if not os.path.exists(DATA_DIR):
+#         return jsonify([])
+
+#     produtos = [
+#         d for d in os.listdir(DATA_DIR)
+#         if os.path.isdir(os.path.join(DATA_DIR, d))
+#     ]
+
+#     return jsonify(sorted(produtos))
+
+
+# # ---------------------------------------------------
+# @app.route("/api/anos/<produto>")
+# def anos(produto):
+
+#     path = os.path.join(DATA_DIR, produto)
+
+#     anos = [
+#         d for d in os.listdir(path)
+#         if os.path.isdir(os.path.join(path, d))
+#     ]
+
+#     return jsonify(sorted(anos))
+
+
+# # ---------------------------------------------------
+# @app.route("/api/datas/<produto>/<ano>")
+# def datas(produto, ano):
+
+#     path = os.path.join(DATA_DIR, produto, ano)
+
+#     # datas = []
+#     datas = set()
+
+#     for f in os.listdir(path):
+
+#         if f.endswith(".tif"):
+
+#             # extrai data YYYYMMDD do nome
+#             m = re.search(r'(\d{8})', f)
+
+#             if m:
+#                 # datas.append(m.group(1))
+#                 datas.add(m.group(1))
+
+#     # return jsonify(sorted(datas))
+#     return jsonify(sorted(datas))
+
+
+# # ---------------------------------------------------
+
+# @app.route("/geotiff/<produto>/<ano>/<data>")
+# @app.route("/geotiff/<produto>/<ano>/<data>/<hora>")
+# def get_geotiff(produto, ano, data, hora=None):
+
+#     path = os.path.join(
+#         DATA_DIR,
+#         produto,
+#         ano
+#     )
+
+#     if not os.path.exists(path):
+
+#         return {
+#             "erro": f"Diretório não encontrado: {path}"
+#         }, 404
+
+#     # =====================================================
+#     # GOES-AOD
+#     # =====================================================
+
+#     if produto == "goes_aod" and hora:
+
+#         # hora recebida:
+#         # 14:30:20
+#         #
+#         # arquivo:
+#         # aod_goes16_20240816_143020.tif
+
+#         hora_arquivo = hora.replace(":", "")
+
+#         nome_arquivo = (
+#             f"aod_goes16_{data}_{hora_arquivo}.tif"
+#         )
+
+#         arquivo = os.path.join(
+#             path,
+#             nome_arquivo
+#         )
+
+#         if os.path.exists(arquivo):
+
+#             return send_file(arquivo)
+
+#         return {
+#             "erro": f"Arquivo não encontrado: {nome_arquivo}"
+#         }, 404
+
+#     # =====================================================
+#     # Produtos diários
+#     # Sentinel-5P etc.
+#     # =====================================================
+
+#     for f in os.listdir(path):
+
+#         if (
+#             data in f
+#             and f.endswith(".tif")
+#         ):
+
+#             return send_file(
+#                 os.path.join(path, f)
+#             )
+
+#     return {
+#         "erro": "arquivo não encontrado"
+#     }, 404
+
+
+# # ---------------------------------------------------
+
+# @app.route("/api/horas/<produto>/<ano>/<data>")
+# def get_horas(produto, ano, data):
+
+#     if produto == "goes_aod":
+
+#         pasta = f"/data/geotiff/goes_aod/{ano}"
+
+#     else:
+
+#         return jsonify([])
+
+#     if not os.path.exists(pasta):
+
+#         return jsonify([])
+
+#     horas = []
+
+#     for arquivo in os.listdir(pasta):
+
+#         if not arquivo.endswith(".tif"):
+#             continue
+
+#         # Exemplo:
+#         # aod_goes16_20240816_143020.tif
+
+#         match = re.search(
+#             rf"_{data}_(\d{{6}})\.tif$",
+#             arquivo
+#         )
+
+#         if match:
+
+#             hora = match.group(1)
+
+#             hora_formatada = (
+#                 hora[0:2] + ":" +
+#                 hora[2:4] + ":" +
+#                 hora[4:6]
+#             )
+
+#             horas.append(hora_formatada)
+
+#     horas = sorted(set(horas))
+
+#     return jsonify(horas)
+
+
+# # ---------------------------------------------------
+# @app.route("/api/colormap/<product>")
+# def get_colormap(product):
+
+#     #with open("/home/jurandir/cipc_rad/config/colormaps.json") as f:
+#     with open("/config/colormaps.json") as f:
+#         try:
+#             data = json.load(f)
+#         except Exception as e:
+#             return {"error": str(e)}, 500
+#         #data = json.load(f)
+
+#     return jsonify(data[product])
+
+# # ---------------------------------------------------
+
+# @app.route("/api/datas_interval/<produto>/<start>/<end>")
+# def datas_interval(produto,start,end):
+
+#     pasta = os.path.join(DATA_DIR, produto)
+
+#     datas=set()
+
+#     for root,dirs,files in os.walk(pasta):
+
+#         for f in files:
+
+#             m=re.search(r"\d{8}",f)
+
+#             if m:
+
+#                 d=m.group()
+
+#                 if start <= d <= end:
+#                     datas.add(d)
+
+#     datas=sorted(list(datas))
+
+#     return jsonify(datas)
+# # ---------------------------------------------------
+
+# # API - Estações CETESB
+# @app.route("/api/cetesb/stations")
+# def cetesb_stations():
+
+#     with open(CETESB_JSON) as f:
+#         data = json.load(f)
+
+#     return jsonify(data)
+
+
+# @app.route("/api/compare_series")
+# def compare_series():
+
+#     try:
+
+#         codigo = request.args.get("station")
+
+#         linha_estacao = STATIONS_DF[
+#             STATIONS_DF["codigo"].astype(str) == str(codigo)
+#         ]
+
+#         if linha_estacao.empty:
+
+#             return jsonify({
+#                 "erro": f"Estação {codigo} não encontrada"
+#             }), 200
+
+#         nome_estacao = linha_estacao.iloc[0]["nome"]
+
+#         lat_station = float(
+#             linha_estacao.iloc[0]["latitude"]
+#         )
+
+#         lon_station = float(
+#             linha_estacao.iloc[0]["longitude"]
+#         )
+
+#         print(f"Estação encontrada: {codigo}")
+#         print(f"Nome={nome_estacao}")
+#         print(f"Lat={lat_station} Lon={lon_station}")
+
+#         cetesb_gases = request.args.getlist(
+#             "cetesb"
+#         )
+
+#         sat_gases = request.args.getlist(
+#             "sat"
+#         )
+
+#         goes = request.args.getlist("goes")
+
+#         ### repetido
+#         # cetesb_gases = request.args.getlist("cetesb")
+#         # sat_gases = request.args.getlist("sat")
+
+#         start = request.args.get("start")
+#         end = request.args.get("end")
+
+#         print("codigo=", codigo)
+#         print("cetesb=", cetesb_gases)
+#         print("sat=", sat_gases)
+#         print("GOES:", goes)
+
+#         data_inicio = pd.to_datetime(start)
+#         data_fim = pd.to_datetime(end)
+
+#         try:
+
+#             df = load_cetesb_data(
+#                 input_dir=CETESB_CSV,
+#                 estacoes=[codigo],
+#                 poluentes=cetesb_gases,
+#                 data_inicio=data_inicio,
+#                 data_fim=data_fim
+#             )
+
+#         except Exception as e:
+
+#             return jsonify({
+#                 "erro": str(e)
+#             }), 200
+
+#         if df is None or len(df) == 0:
+
+#             return jsonify({
+#                 "erro": "Nenhum dado encontrado."
+#             }), 200
+
+#         print(df.columns.tolist())
+#         print(df.head())
+
+#         # -----------------------------
+#         # Normaliza datas
+#         # -----------------------------
+#         df["datetime"] = pd.to_datetime(df["datetime"])
+
+#         # -----------------------------
+#         # Descobre coluna de valor
+#         # -----------------------------
+#         valor_col = None
+
+#         for c in [
+#             "Valor Diário",
+#             "valor_diario",
+#             "value",
+#             "valor"
+#         ]:
+#             if c in df.columns:
+#                 valor_col = c
+#                 break
+
+#         if valor_col is None:
+
+#             return jsonify({
+#                 "erro":
+#                 f"Coluna de valor não encontrada. Colunas={df.columns.tolist()}"
+#             }), 200
+
+#         # -----------------------------
+#         # Datas do gráfico
+#         # -----------------------------
+#         dates = sorted(
+#             df["datetime"]
+#             .dt.strftime("%Y-%m-%d")
+#             .unique()
+#             .tolist()
+#         )
+
+#         series = []
+
+#         # -----------------------------
+#         # CETESB
+#         # -----------------------------
+#         for pol in cetesb_gases:
+
+#             df_pol = df[
+#                 df["pollutant"] == pol
+#             ].copy()
+
+#             if len(df_pol) == 0:
+
+#                 print(
+#                     f"Sem dados para {pol}"
+#                 )
+
+#                 continue
+
+#             df_pol = df_pol.sort_values(
+#                 "datetime"
+#             )
+
+#             valores = []
+
+#             for d in dates:
+
+#                 linha_data = df_pol[
+#                     df_pol["datetime"]
+#                     .dt.strftime("%Y-%m-%d") == d
+#                 ]
+
+#                 if len(linha_data):
+
+#                     valores.append(
+#                         float(
+#                             linha_data.iloc[0][valor_col]
+#                         )
+#                     )
+
+#                 else:
+
+#                     valores.append(None)
+
+#             cfg = CETESB_CONFIG.get(pol, {})
+
+#             series.append({
+
+#                 "name": f"CETESB {pol}",
+
+#                 "values": valores,
+
+#                 "color": cfg.get("color", "black"),
+
+#                 "unit": cfg.get("unit", ""),
+
+#                 "satellite": False,
+
+#                 "marker": "circle"
+#             })
+
+#         print(">>> ANTES DO SENTINEL")
+
+#         # -----------------------------
+#         # SATÉLITE SENTINEL-5P
+#         # -----------------------------
+
+#         datas_unicas = pd.to_datetime(
+#             dates
+#         )
+
+#         for pol in sat_gases:
+
+#             if pol not in SAT_CONFIG:
+
+#                 continue
+
+#             cfg = SAT_CONFIG[pol]
+
+#             sat_dates, sat_values = (
+#                 get_satellite_series(
+#                     sat_index=cfg["index"],
+#                     datas_unicas=datas_unicas,
+#                     lat_station=lat_station,
+#                     lon_station=lon_station,
+#                     delta=0.5,
+#                     scale=cfg["scale"]
+#                 )
+#             )
+
+#             print("\n======================")
+#             print("PRODUTO:", pol)
+#             print("INDEX DIR:", cfg["index"])
+#             print("DATAS:", sat_dates)
+#             print("VALORES:", sat_values)
+
+#             if sat_values:
+#                 print("MIN:", min(sat_values))
+#                 print("MAX:", max(sat_values))
+#             print("======================")
+
+#             sat_map = {}
+
+#             for d, v in zip(
+#                 sat_dates,
+#                 sat_values
+#             ):
+
+#                 sat_map[
+#                     pd.Timestamp(d)
+#                     .strftime("%Y-%m-%d")
+#                 ] = float(v)
+
+#             valores = []
+
+#             for d in dates:
+
+#                 valores.append(
+#                     sat_map.get(d, None)
+#                 )
+
+#             series.append({
+
+#                 "name": cfg["label"],
+
+#                 "values": valores,
+
+#                 "color": cfg["color"],
+
+#                 "marker": cfg["marker"],
+
+#                 "unit": cfg.get("unit",""),
+
+#                 "satellite": True
+#             })
+
+#         print("DATES=", dates)
+
+#         print("SERIES=")
+
+#         for s in series:
+#             print(
+#                 s["name"],
+#                 len(s["values"])
+#             )
+
+#         print("================================")
+#         print("codigo =", codigo)
+#         print("nome   =", nome_estacao)
+#         print("================================")        
+
+
+#         print(">>> DEPOIS DO SENTINEL")
+#         print(">>> ANTES DO GOES")
+
+#         inicio_goes = time.perf_counter()
+
+#         # -----------------------------
+#         # SATÉLITE GOES-16 AOD
+#         # -----------------------------
+#         for pol in goes:
+
+#             if pol not in GOES_CONFIG:
+
+#                 continue
+
+#             cfg = GOES_CONFIG[pol]
+
+#             #goes_dates, goes_values = get_satellite_series(
+#             goes_dates, goes_values = get_goes_series_hourly(
+
+#                 goes_index=cfg["index"],
+
+#                 datas_unicas=datas_unicas,
+
+#                 lat_station=lat_station,
+
+#                 lon_station=lon_station,
+
+#                 delta=0.5,
+
+#                 scale=cfg.get("scale", 1.0),
+
+#                 # Filtro para GOES (vários arquivos horários. 
+#                 # Usa 1 arquivo por hora e no intervalo diurno
+#                 # 06:00 às 18:00 LOCAL
+#                 # 09:00 às 21:00 UTC
+#                 #hora_inicio_utc=9,
+#                 #hora_fim_utc=21
+
+#             )
+
+#             fim_goes = time.perf_counter()
+
+#             print(
+#                 f">>> TEMPO GOES: {fim_goes - inicio_goes:.3f} segundos"
+#             )            
+
+#             print("\n======================")
+#             print("PRODUTO GOES:", pol)
+#             print("INDEX DIR:", cfg["index"])
+#             print("DATAS:", goes_dates)
+#             print("VALORES:", goes_values)
+
+#             if goes_values:
+
+#                 print("MIN:", min(goes_values))
+#                 print("MAX:", max(goes_values))
+
+#             print("======================")
+
+#             goes_map = {}
+
+#             for d, v in zip(goes_dates, goes_values):
+
+#                 goes_map[
+#                     pd.Timestamp(d).strftime("%Y-%m-%d")
+#                 ] = float(v)
+
+#             valores = []
+
+#             for d in dates:
+
+#                 valores.append(
+#                     goes_map.get(d, None)
+#                 )
+
+#             series.append({
+
+#                 "name": cfg["label"],
+
+#                 "values": valores,
+
+#                 "color": cfg["color"],
+
+#                 "marker": cfg["marker"],
+
+#                 "unit": cfg.get("unit", ""),
+
+#                 "satellite": True
+#             })
+
+
+#         return jsonify({
+#             "station": {
+#                 "codigo": codigo,
+#                 "nome": nome_estacao
+#             },
+#             "start": start,
+#             "end": end,
+#             "dates": dates,
+#             "series": series
+#         })
+
+
+#     except Exception as e:
+
+#         import traceback
+#         traceback.print_exc()
+
+#         return jsonify({
+#             "erro": str(e)
+#         }), 500
+
+
+# @app.route("/api/test")
+# def api_test():
+#     return jsonify({"status": "ok"})
+
+
+# # Verifica as estações que tem arquivos de dados csv
+# # e comunica com o viewer.js e deixa o marcador na 
+# # cor cinza. 
+# @app.route("/api/cetesb/stations_with_data")
+# def stations_with_data():
+
+#     pasta = "/data/cetesb/media_diaria_csvs"
+
+#     codigos = set()
+
+#     if os.path.exists(pasta):
+
+#         for f in os.listdir(pasta):
+
+#             if f.endswith(".csv"):
+
+#                 codigo = f.split("_")[0]
+#                 codigos.add(codigo)
+
+#     return jsonify(sorted(list(codigos)))
+
+
+
+# # Caminho dos dados
+# STATIONS_DF, STATIONS_DICT = load_stations(
+#     CETESB_JSON
+# )
+
+
+
+# SAT_INDEX = {
+#     "O3": build_satellite_index(
+#         "/data/geotiff/ozone_total_vertical_column"
+#     ),
+#     "CO": build_satellite_index(
+#         "/data/geotiff/carbonmonoxide_total_column"
+#     ),
+#     "AI": build_satellite_index(
+#         "/data/geotiff/aerosol_index_354_388"
+#     ),
+#     "NO2": build_satellite_index(
+#         "/data/geotiff/nitrogendioxide_tropospheric_column"
+#     ),
+#     "SO2": build_satellite_index(
+#         "/data/geotiff/sulfurdioxide_total_vertical_column"
+#     ),
+#     "CH4": build_satellite_index(
+#         "/data/geotiff/methane_mixing_ratio"
+#     )
+# }
+
+# SAT_CONFIG = create_sat_config(
+#     SAT_INDEX
+# )
+
+
+# CETESB_CONFIG = {
+
+#     "O3": {
+#         "color": "blue",
+#         "unit": "µg/m³"
+#     },
+
+#     "MP25": {
+#         "color": "brown",
+#         "unit": "µg/m³"
+#     },
+
+#     "MP10": {
+#         "color": "purple",
+#         "unit": "µg/m³"
+#     },
+
+#     "NO2": {
+#         "color": "orange",
+#         "unit": "µg/m³"
+#     },
+
+#     "SO2": {
+#         "color": "green",
+#         "unit": "µg/m³"
+#     },
+
+#     "CO": {
+#         "color": "red",
+#         "unit": "ppm"
+#     }
+# }
+
+# GOES_INDEX = {
+
+#     "AOD": build_satellite_index(
+#         "/data/geotiff/goes_aod",
+#         include_time=True
+#     )
+
+# }
+
+# print("\n======================")
+# print("GOES INDEX")
+# print("Dias encontrados:", len(GOES_INDEX["AOD"]))
+
+# for k, v in list(GOES_INDEX["AOD"].items())[:5]:
+#     print(k, "->",len(v),
+#             "arquivos"
+#     )
+# print("======================")
+
+
+# GOES_CONFIG = {
+
+#     "AOD": {
+
+#         "index": GOES_INDEX["AOD"],
+
+#         "label": "GOES-16 AOD",
+
+#         "color": "#8B4513",
+
+#         "marker": "triangle",
+
+#         "unit": "AOD",
+
+#         "scale": 100
+#     }
+# }
+
+# print(GOES_INDEX["AOD"])
+
+
+# if __name__ == "__main__":
+#     #app.run(debug=True)
+#     app.run(host="0.0.0.0", port=5000, debug=True)

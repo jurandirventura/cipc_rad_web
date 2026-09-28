@@ -50,7 +50,7 @@
 
         <br><br>
 
-        <!-- Sentinel -->
+        <!-- Sentinel-5P -->
         <h3>Sentinel-5P</h3>
 
         <label><input type="checkbox" value="O3" class="satGas"> O3</label>
@@ -59,6 +59,19 @@
         <label><input type="checkbox" value="SO2" class="satGas"> SO2</label>
         <label><input type="checkbox" value="CO" class="satGas"> CO</label>
         <label><input type="checkbox" value="CH4" class="satGas"> CH4</label>
+
+        <br><br>
+
+        <!-- Sentinel-3B -->
+        <h3>Sentinel-3B</h3>
+
+        <label>
+            <input
+                type="checkbox"
+                value="AOD"
+                class="sentinel3Gas">
+            AOD 550 nm
+        </label>
 
         <br><br>
 
@@ -73,7 +86,7 @@
             AOD
         </label>
 
-        <br><br>   
+        <br><br>
 
         <button onclick="compareSeries()">
             Comparar
@@ -81,7 +94,6 @@
 
         <hr>
 
-        
         <b>Produto</b><br>
         <select id="produto"></select>
 
@@ -102,7 +114,7 @@
             <div id="horaContainer" style="display:none;">
                 <b>Hora</b><br>
                 <select id="hora"></select>
-            </div>   
+            </div>
 
         </div>
 
