@@ -818,7 +818,7 @@ S3B_CONFIG = {
         "color": "#008B8B",
         "marker": "circle",
         "unit": "AOD",
-        "scale": 1.0
+        "scale": 100
     }
 }
 
