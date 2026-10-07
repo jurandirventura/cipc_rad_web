@@ -261,7 +261,7 @@ const COLORS = {
 const LEGEND_ORDER = [
 
     "CETESB O3",
-    "Sentinel-3B AOD 550 nm (AOD)",
+    "Sentinel-3AB AOD 550 nm (AOD)",
     "GOES-16 AOD (AOD)",
     "S5P O3",
 
