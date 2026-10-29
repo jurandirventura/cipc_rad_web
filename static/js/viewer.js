@@ -1,16 +1,4 @@
-// atualizando 10jun2026 - Inclui Cetesb
-// var map = L.map('map',{
-// center:[-15,-55],
-// zoom:4,
-// worldCopyJump:false,
-// maxBounds:[[-85,-180],[85,180]],
-// maxBoundsViscosity:1.0
-// })
-
-// L.tileLayer(
-// 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-// {noWrap:true}
-// ).addTo(map)
+// Atualizado 29out2026 
 
 var map = L.map("map",{
     center:[-15,-55],
@@ -21,21 +9,6 @@ var map = L.map("map",{
 });
 
 // Painel exclusivo para as imagens GeoTIFF
-// map.createPane("rasterPane");
-// map.getPane("rasterPane").style.zIndex = 350;
-
-// // Mapa-base OpenStreetMap
-// const osm = L.tileLayer(
-//     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-//     {
-//         noWrap: true,
-//         attribution: "© OpenStreetMap"
-//     }
-// );
-
-// // Adiciona o mapa-base inicial
-// osm.addTo(map);
-
 //
 // BASEMAPS
 //
@@ -269,6 +242,25 @@ fetch("/static/geojson/estados.geojson")
 
 });
 
+// Rios do arquivo origem ne_10m_rivers_lake_centerlines.geojson
+// do site https://www.quickmaptools.com/download-natural-earth/rivers_lake_centerlines
+// recortados para América do Sul
+// fetch("/static/geojson/rios_samerica.geojson")
+fetch("/static/geojson/rios_samerica.geojson")
+.then(r => r.json())
+.then(g => {
+
+    L.geoJSON(g,{
+        style:{
+            color:"#0ad7f1",
+            weight:2,
+            fill:false
+        }
+    }).addTo(riosLayer);
+
+});
+
+
 // fetch("/static/geojson/limites_brasil.geojson")
 fetch("/static/geojson/geoBoundaries-BRA-ADM2_simplified.geojson")
 .then(r => r.json())
@@ -364,6 +356,94 @@ UNIDADES = {
     "MP10":"µg/m³",
     "MP25":"µg/m³"
 }
+
+// Rios 
+// Carrega os rios da base Natural Earth
+async function loadRios() {
+    try {
+        const response = await fetch(
+            "/static/geojson/rios_samerica.geojson"
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Erro HTTP ${response.status} ao carregar os rios`
+            );
+        }
+
+        const geojson = await response.json();
+
+        // Limpa dados anteriores, caso a função seja chamada novamente
+        riosLayer.clearLayers();
+
+        // Cria a camada vetorial
+        const riosGeoJSON = L.geoJSON(geojson, {
+            style: function (feature) {
+                return {
+                    color: "#1687d9",
+                    weight: 1.4,
+                    opacity: 0.9
+                };
+            }
+        });
+
+        // Adiciona as geometrias ao grupo já utilizado pelo controle
+        riosLayer.addLayer(riosGeoJSON);
+
+        console.log(
+            "Rios carregados com sucesso:",
+            geojson.features?.length ?? 0,
+            "feições"
+        );
+
+    } catch (error) {
+        console.error(
+            "Erro ao carregar os rios:",
+            error
+        );
+    }
+}
+
+// async function loadRios() {
+//     try {
+//         const response = await fetch(
+//             "/static/geo/rios_samerica.geojson"
+//         );
+
+//         if (!response.ok) {
+//             throw new Error(
+//                 `Erro HTTP ${response.status} ao carregar os rios`
+//             );
+//         }
+
+//         const geojson = await response.json();
+
+//         riosLayer.clearLayers();
+
+//         const riosGeoJSON = L.geoJSON(geojson, {
+//             style: {
+//                 color: "#1687d9",
+//                 weight: 1.2,
+//                 opacity: 0.85
+//             }
+//         });
+
+//         riosLayer.addLayer(riosGeoJSON);
+
+//         console.log(
+//             "Rios carregados:",
+//             geojson.features.length
+//         );
+
+//     } catch (error) {
+//         console.error(
+//             "Erro ao carregar a camada de rios:",
+//             error
+//         );
+//     }
+// }
+
+
 
 // ---------------------
 async function init(){

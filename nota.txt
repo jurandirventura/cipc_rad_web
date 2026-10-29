@@ -61,3 +61,13 @@ fetch()
    ↓
 /api/compare_series
 
+
+- DOWNLOAD SHAPEFILE RIOS
+https://data.humdata.org/dataset/geoboundaries-admin-boundaries-for-brazil/resource/d51d5c76-5b02-4491-a5f9-6e620264be19
+
+CONVERSÃO para geojson
+
+ogr2ogr -f GeoJSON \
+    rios_samerica.geojson \
+    "/caminho/real/para/o/arquivo.shp" \
+    -t_srs EPSG:4326
